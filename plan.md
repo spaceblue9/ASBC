@@ -34,10 +34,32 @@
     - [x] 7.1 ออกแบบหน้าจอ Interface ด้วย Tkinter
     - [x] 7.2 เชื่อมต่อปุ่มเลือกไฟล์ (File Dialog) เข้ากับระบบ Config
     - [x] 7.3 รวมระบบรันโปรแกรมเข้ากับหน้าจอ GUI พร้อมการแจ้งเตือน Error
-- [ ] **Phase 8: Batch Processing Support**
-    - [ ] 8.1 ปรับปรุง ASBC_Main ให้รองรับการทำงานหลาย Task จาก Config เดียว
-    - [ ] 8.2 ปรับปรุงระบบ Template ให้แยกตามราย Task
-    - [ ] 8.3 ทดสอบการรันครั้งเดียวเพื่อออกไฟล์ elements.csv และ properties.csv พร้อมกัน
+- [x] **Phase 8: Batch Processing Support**
+    - [x] 8.1 ปรับปรุง ASBC_Main ให้รองรับการทำงานหลาย Task จาก Config เดียว
+    - [x] 8.2 ปรับปรุงระบบ Template ให้แยกตามราย Task
+    - [x] 8.3 ทดสอบการรันครั้งเดียวเพื่อออกไฟล์ elements.csv และ properties.csv พร้อมกัน
+- [ ] **Phase 9: Advanced Project-based GUI (User-Friendly)**
+    - [x] 9.1 สร้าง Git Branch `feature/advanced-gui` และโครงสร้างโปรเจกต์ใหม่
+    - [x] 9.2 พัฒนา "Task Manager" สำหรับ เพิ่ม/ลบ/แก้ไข Task ผ่าน GUI ทั้งหมด
+    - [x] 9.3 พัฒนา "Template Editor" ในตัว (ไม่ต้องเปิด Notepad)
+    - [x] 9.4 ปรับปรุง UI/UX (เพิ่ม Scrollbar ในหน้า Task Editor และระบบ Auto-fill ชื่อไฟล์)
+    - [x] 9.5 เพิ่มระบบช่วยเหลือ (Guideline/Cheat Sheet) ใน Template Editor เพื่อให้ User ใช้งานง่าย
+    - [x] 9.6 ระบบตรวจสอบความถูกต้องอัตโนมัติ (Validation) ก่อนรันงาน
+    - [x] 9.7 แก้ไขการบันทึกไฟล์ Excel ให้เปิดได้ปกติ (บันทึกเป็นตารางจริง)
+    - [x] 9.8 เพิ่มปุ่มเลือกประเภทไฟล์ Output (.csv, .xlsx, .json, .txt) ใน GUI
+    - [x] 9.9 นำ .xlsx ออกจากตัวเลือก Output และปรับให้ทุกไฟล์บันทึกตาม Template 100%
+    - [x] 9.10 เพิ่มระบบเลือกงาน (Multi-select) ในหน้าจอหลัก เพื่อสั่งรันเฉพาะงานที่ต้องการ
+    - [ ] **Phase 10: Project Folder Management (Organization)**
+    - [ ] 10.1 ปรับปรุง GUI ให้แนะนำและสร้างโครงสร้างโฟลเดอร์แยกตาม Project (projects/Name/...)
+    - [ ] 10.2 ระบบจัดระเบียบไฟล์ Template ให้อยู่ในโฟลเดอร์ย่อยของแต่ละงาน
+    - [x] 10.3 อัปเดตการแสดงผลในหน้าหลักให้ดูง่ายขึ้นตามชื่อโฟลเดอร์
+    - [x] 10.4 เพิ่มคำอธิบายหน้าที่ของ Header, Body, Footer ในหน้า Guideline ให้ User เข้าใจง่าย
+    - [ ] 10.5 เพิ่มคำอธิบาย "โหมดแนวตั้ง (Transpose)" อย่างละเอียดในหน้า Guideline
+
+
+
+
+
 
 ---
 
