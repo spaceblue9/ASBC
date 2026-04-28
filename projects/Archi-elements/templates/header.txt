@@ -1,0 +1,2 @@
+"ID","Type","Name","Documentation","Specialization"
+"id-2a1e87d44acf454ea1a21453738fe3f0","ArchimateModel","testtest","",""
