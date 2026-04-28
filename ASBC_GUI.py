@@ -4,6 +4,7 @@ from ASBC_Main import ASBCConverter
 import configparser
 import os
 import shutil
+import pandas as pd
 
 class ScrollableFrame(ttk.Frame):
     def __init__(self, container, *args, **kwargs):
@@ -113,6 +114,7 @@ class TaskEditor(tk.Toplevel):
         self.vars = {
             'name': tk.StringVar(value=init_name),
             'file_path': tk.StringVar(value=self.config.get(section, 'file_path', fallback="") if section else ""),
+            'sheet_name': tk.StringVar(value=self.config.get(section, 'sheet_name', fallback="0") if section else "0"),
             'header_file': tk.StringVar(value=self.config.get(section, 'header_file', fallback="") if section else ""),
             'body_file': tk.StringVar(value=self.config.get(section, 'body_file', fallback="") if section else ""),
             'footer_file': tk.StringVar(value=self.config.get(section, 'footer_file', fallback="") if section else ""),
@@ -120,11 +122,28 @@ class TaskEditor(tk.Toplevel):
             'melt_id_vars': tk.StringVar(value=self.config.get(section, 'melt_id_vars', fallback="") if section else "")
         }
         self.vars['name'].trace_add("write", self.update_suggested_paths)
+        self.vars['file_path'].trace_add("write", self.update_sheet_list)
         self.scroll_container = ScrollableFrame(self)
         self.scroll_container.pack(fill="both", expand=True)
         self.main_content = self.scroll_container.scrollable_frame
         self.create_widgets()
+        self.update_sheet_list()
         
+    def update_sheet_list(self, *args):
+        path = self.vars['file_path'].get()
+        if path and os.path.exists(path) and path.lower().endswith(('.xlsx', '.xls')):
+            try:
+                xl = pd.ExcelFile(path)
+                sheets = xl.sheet_names
+                self.sheet_combo['values'] = sheets
+                if self.vars['sheet_name'].get() not in sheets and sheets:
+                    if self.vars['sheet_name'].get() == "0": pass # Keep 0 as index 0
+                    else: self.vars['sheet_name'].set(sheets[0])
+            except:
+                self.sheet_combo['values'] = []
+        else:
+            self.sheet_combo['values'] = []
+
     def update_suggested_paths(self, *args):
         name = self.vars['name'].get().strip()
         if name and not self.section:
@@ -147,9 +166,14 @@ class TaskEditor(tk.Toplevel):
         ttk.Label(g2, text="Source Excel:").grid(row=0, column=0, sticky="w")
         ttk.Entry(g2, textvariable=self.vars['file_path'], width=55).grid(row=0, column=1, padx=10)
         ttk.Button(g2, text="Browse...", command=lambda: self.browse('file_path')).grid(row=0, column=2)
-        self.add_row(g2, "Header Template:", 'header_file', 1, "header.txt")
-        self.add_row(g2, "Body Template:", 'body_file', 2, "body.txt")
-        self.add_row(g2, "Footer Template:", 'footer_file', 3, "footer.txt")
+        
+        ttk.Label(g2, text="Select Sheet:").grid(row=1, column=0, sticky="w", pady=8)
+        self.sheet_combo = ttk.Combobox(g2, textvariable=self.vars['sheet_name'], width=52)
+        self.sheet_combo.grid(row=1, column=1, padx=10, pady=8, sticky="w")
+
+        self.add_row(g2, "Header Template:", 'header_file', 2, "header.txt")
+        self.add_row(g2, "Body Template:", 'body_file', 3, "body.txt")
+        self.add_row(g2, "Footer Template:", 'footer_file', 4, "footer.txt")
 
         g3 = ttk.LabelFrame(self.main_content, text=" 3. Output Configuration ", padding=15)
         g3.pack(fill="x", **pad)
