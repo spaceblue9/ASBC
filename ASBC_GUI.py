@@ -155,8 +155,8 @@ class TextEditor(tk.Toplevel):
     # ── UI Construction ───────────────────────────────────────────────────────
     def _build_ui(self):
         self._build_header()
-        self._build_body()
-        self._build_footer()
+        self._build_footer()  # ← pack to bottom FIRST (same fix as run panel)
+        self._build_body()  # ← then body fills remaining middle space
 
     def _build_header(self):
         hdr = tk.Frame(self, bg=C["header"], height=56)
@@ -398,9 +398,9 @@ class TextEditor(tk.Toplevel):
         tk.Frame(c, bg=C["card"], height=8).pack()
 
     def _build_footer(self):
-        tk.Frame(self, bg=C["border"], height=1).pack(fill="x")
+        tk.Frame(self, bg=C["border"], height=1).pack(side="bottom", fill="x")
         footer = tk.Frame(self, bg=C["card_alt"], height=54)
-        footer.pack(fill="x")
+        footer.pack(side="bottom", fill="x")
         footer.pack_propagate(False)
 
         btn_row = tk.Frame(footer, bg=C["card_alt"])
@@ -919,6 +919,7 @@ class HelpDialog(tk.Toplevel):
 
         self._btns = {}
         self._frames = {}
+        self._loaded = set()  # track which pages have been built
         for label, key in self._PAGES:
             btn = tk.Label(
                 nav,
@@ -947,17 +948,28 @@ class HelpDialog(tk.Toplevel):
             sf = ScrollableFrame(self._content, bg=C["bg"])
             self._btns[key] = btn
             self._frames[key] = sf
-            getattr(self, f"_pg_{key}")(sf.inner)
+            # NOTE: content is NOT added here — see _show() lazy loading
 
         self._show("overview")
 
     def _show(self, key):
+        # Hide all pages
         for k, sf in self._frames.items():
             sf.pack_forget()
             self._btns[k].configure(bg="#1e293b", fg="#94a3b8")
-        self._frames[key].pack(fill="both", expand=True)
+
+        # Show selected page
+        sf = self._frames[key]
+        sf.pack(fill="both", expand=True)
         self._btns[key].configure(bg=C["primary"], fg="white")
         self._active = key
+
+        # Lazy load: build page content AFTER frame is packed and has proper dimensions
+        if key not in self._loaded:
+            self.update_idletasks()  # let canvas settle its size
+            getattr(self, f"_pg_{key}")(sf.inner)  # build content now
+            self._loaded.add(key)
+            self.update_idletasks()  # refresh after content added
 
     # ── Shared Helpers ───────────────────────────────────────────────────────
     def _sec(self, p, title):
