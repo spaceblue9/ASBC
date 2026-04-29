@@ -77,6 +77,13 @@
     - [x] 13.8 เพิ่ม Keyboard Shortcut (Ctrl+S) และ Double-click to Edit
     - [x] 13.9 เพิ่ม Loading State บนปุ่ม RUN ขณะประมวลผล
     - [x] 13.10 ทดสอบการใช้งานหน้าจอใหม่ครบทุก Dialog
+- [x] **Phase 14: License Protection System (Commercial)**
+    - [x] 14.1 ออกแบบระบบ License แบบ Local HMAC + Machine Fingerprint (ไม่ต้องใช้ Server)
+    - [x] 14.2 สร้าง license_manager.py (get_machine_id, validate, is_activated, activate)
+    - [x] 14.3 สร้าง activate_dialog.py หน้าจอ Activation แบบ Professional
+    - [x] 14.4 สร้าง keygen.py เครื่องมือออก License Key สำหรับผู้พัฒนา (ไม่แจกลูกค้า)
+    - [x] 14.5 เพิ่ม License Gate ใน ASBC_GUI.py ตรวจสอบทุกครั้งที่เปิดโปรแกรม
+    - [x] 14.6 สร้าง build.bat สำหรับ compile เป็น .exe ด้วย PyInstaller
 
 
 

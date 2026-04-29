@@ -1233,6 +1233,20 @@ class ASBCGui:
 #  ENTRY POINT
 # ══════════════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
+    import sys
+
+    from license_manager import is_activated
+
+    # ── License Gate ────────────────────────────────────────────────────────
+    if not is_activated():
+        from activate_dialog import ActivationDialog
+
+        dlg = ActivationDialog()
+        dlg.mainloop()
+        if not dlg.approved:
+            sys.exit(0)  # ปิดโปรแกรมถ้ายังไม่ลงทะเบียน
+
+    # ── Launch Main App ─────────────────────────────────────────────────────
     root = tk.Tk()
     try:
         root.iconbitmap("ea.ico")
