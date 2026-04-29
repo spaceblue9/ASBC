@@ -252,88 +252,150 @@ class TextEditor(tk.Toplevel):
             bg=C["card"],
             highlightbackground=C["border"],
             highlightthickness=1,
-            width=290,
+            width=310,
         )
         help_wrap.pack(side="right", fill="y", padx=(12, 0))
         help_wrap.pack_propagate(False)
 
-        help_top = tk.Frame(help_wrap, bg=C["card_alt"], height=34)
+        help_top = tk.Frame(help_wrap, bg="#1e293b", height=34)
         help_top.pack(fill="x")
         help_top.pack_propagate(False)
         tk.Label(
             help_top,
             text="  💡  Quick Reference",
-            bg=C["card_alt"],
-            fg=C["text"],
+            bg="#1e293b",
+            fg="#e2e8f0",
             font=(FF, 9, "bold"),
         ).pack(side="left", pady=8)
+        tk.Label(
+            help_top,
+            text=f"  {self.default_name}  ",
+            bg="#334155",
+            fg="#94a3b8",
+            font=(FF, 8),
+        ).pack(side="right", padx=8)
 
         scroll = ScrollableFrame(help_wrap, bg=C["card"])
         scroll.pack(fill="both", expand=True)
-        content = scroll.inner
+        c = scroll.inner
 
-        sections = [
-            (
-                "📂  Template Structure",
-                "Header  → แสดงครั้งเดียวด้านบน\n"
-                "Body    → ซ้ำตามจำนวนแถวข้อมูล\n"
-                "Footer  → แสดงครั้งเดียวด้านล่าง",
-            ),
-            (
-                "🌟  ดึงข้อมูลจาก Excel",
-                "ใส่ชื่อหัวคอลัมน์ใน {{ }}\n"
-                "ตัวอย่าง:\n"
-                "  {{ CI Name }}\n"
-                "  {{ OS Version }}\n"
-                "  {{ IP Address }}",
-            ),
-            (
-                "✨  Variable พิเศษ",
-                "{{ ID }}     → หมายเลขแถว\n"
-                "{{ Key }}    → ชื่อคอลัมน์\n"
-                "{{ Value }}  → ข้อมูลในช่อง",
-            ),
-            (
-                "🔄  โหมด Transpose",
-                "จับตารางแนวนอนมาเป็น\nคู่ Key-Value แนวตั้ง\nเหมาะกับไฟล์ Properties",
-            ),
-            (
-                "📝  ตัวอย่าง Body",
-                "CI_NAME={{ CI Name }}\nOS={{ OS }}\nIP={{ IP Address }}\n---",
-            ),
-            (
-                "⚠️  ข้อควรระวัง",
-                "• ชื่อใน {{ }} ต้องตรงกับ\n"
-                "  หัวข้อใน Excel\n"
-                "• ตัวพิมพ์เล็ก-ใหญ่ ใช้ได้ทั้งคู่\n"
-                "• กด Save ก่อนปิดเสมอ",
-            ),
-        ]
+        def _badge(parent, text, bg, fg="white"):
+            f = tk.Frame(parent, bg=bg)
+            f.pack(fill="x")
+            tk.Label(
+                f, text=f"  {text}", bg=bg, fg=fg, font=(FF, 8, "bold"), pady=5
+            ).pack(anchor="w")
 
-        for title, text in sections:
+        def _code(parent, text):
+            f = tk.Frame(parent, bg="#1e2030")
+            f.pack(fill="x", padx=10, pady=(0, 8))
             tk.Label(
-                content,
-                text=title,
-                bg=C["card"],
-                fg=C["text"],
-                font=(FF, 9, "bold"),
-                anchor="w",
-                padx=14,
-                pady=(8, 2),
-            ).pack(fill="x")
-            bar = tk.Frame(content, bg=C["primary"], height=2)
-            bar.pack(fill="x", padx=14, pady=(0, 4))
-            tk.Label(
-                content,
+                f,
                 text=text,
-                bg=C["card"],
-                fg=C["text_s"],
+                bg="#1e2030",
+                fg="#a6e3a1",
                 font=(FM, 9),
                 justify="left",
                 anchor="w",
-                padx=14,
-                pady=(0, 8),
+                padx=10,
+                pady=8,
             ).pack(fill="x")
+
+        def _txt(parent, text, color=None):
+            tk.Label(
+                parent,
+                text=text,
+                bg=C["card"],
+                fg=color or C["text_s"],
+                font=(FF, 9),
+                justify="left",
+                anchor="w",
+                padx=12,
+                pady=3,
+            ).pack(fill="x")
+
+        def _div(parent):
+            tk.Frame(parent, bg=C["border"], height=1).pack(fill="x", pady=4)
+
+        # ── Section 1: โครงสร้าง Template ─────────────────────────────────
+        _badge(c, "📋  โครงสร้าง Template", C["primary"])
+        tk.Frame(c, bg=C["primary"], height=2).pack(fill="x")
+
+        for clr, name, desc in [
+            ("#2563eb", "HEADER", "แสดง 1 ครั้ง — ด้านบนสุดของไฟล์"),
+            ("#059669", "BODY  ", "วนซ้ำ — 1 รอบต่อ 1 แถวข้อมูล"),
+            ("#7c3aed", "FOOTER", "แสดง 1 ครั้ง — ด้านล่างสุดของไฟล์"),
+        ]:
+            row = tk.Frame(c, bg=C["card"])
+            row.pack(fill="x", padx=10, pady=2)
+            badge = tk.Frame(row, bg=clr, width=60)
+            badge.pack_propagate(False)
+            badge.pack(side="left", padx=(0, 8))
+            tk.Label(
+                badge, text=name, bg=clr, fg="white", font=(FM, 8, "bold"), pady=6
+            ).pack()
+            tk.Label(
+                row, text=desc, bg=C["card"], fg=C["text_s"], font=(FF, 8), anchor="w"
+            ).pack(side="left")
+
+        _div(c)
+
+        # ── Section 2: วิธีดึงข้อมูล ────────────────────────────────────────
+        _badge(c, "🌟  ดึงข้อมูลจาก Excel", "#059669")
+        tk.Frame(c, bg="#059669", height=2).pack(fill="x")
+        _txt(c, "ใช้ {{ ชื่อคอลัมน์ }} ใน Body Template")
+        _txt(c, "ชื่อต้องตรงกับ Header ใน Excel")
+        _code(c, "{{ CI Name }}\n{{ OS Version }}\n{{ IP Address }}")
+
+        _div(c)
+
+        # ── Section 3: ตัวอย่าง Body ─────────────────────────────────────────
+        _badge(c, "📝  ตัวอย่าง Body Template", "#374151")
+        tk.Frame(c, bg="#374151", height=2).pack(fill="x")
+        _txt(c, "กรณีไฟล์ Excel มี column:\nCI Name, OS, IP Address")
+        _code(
+            c, "CI_NAME={{ CI Name }}\nOS_TYPE={{ OS }}\nIP_ADDR={{ IP Address }}\n---"
+        )
+
+        _div(c)
+
+        # ── Section 4: Variable พิเศษ ─────────────────────────────────────────
+        _badge(c, "✨  Variable พิเศษ (Transpose Mode)", "#7c3aed")
+        tk.Frame(c, bg="#7c3aed", height=2).pack(fill="x")
+        _txt(c, "ใช้เมื่อตั้งค่า Transpose Column ID")
+        for var, desc in [
+            ("{{ ID }}   ", "→ ค่า ID ของแถวนั้น"),
+            ("{{ Key }}  ", "→ ชื่อคอลัมน์จาก Excel"),
+            ("{{ Value }}", "→ ข้อมูลในช่องนั้น"),
+        ]:
+            row = tk.Frame(c, bg=C["card"])
+            row.pack(fill="x", padx=10, pady=1)
+            tk.Label(
+                row,
+                text=var,
+                bg="#1e2030",
+                fg="#89b4fa",
+                font=(FM, 8, "bold"),
+                padx=6,
+                pady=3,
+            ).pack(side="left", padx=(0, 6))
+            tk.Label(row, text=desc, bg=C["card"], fg=C["text_s"], font=(FF, 8)).pack(
+                side="left"
+            )
+        tk.Frame(c, bg=C["card"], height=6).pack()
+
+        _div(c)
+
+        # ── Section 5: ข้อควรระวัง ─────────────────────────────────────────────
+        _badge(c, "⚠️  ข้อควรระวัง", "#b45309", "white")
+        tk.Frame(c, bg="#b45309", height=2).pack(fill="x")
+        for note in [
+            "ชื่อใน {{ }} ต้องสะกดตรงกับ Excel",
+            "ตัวพิมพ์เล็ก-ใหญ่ ใช้ได้ทั้งคู่",
+            "กด 💾 Save & Close หรือ Ctrl+S",
+        ]:
+            _txt(c, f"  • {note}")
+        tk.Frame(c, bg=C["card"], height=8).pack()
 
     def _build_footer(self):
         tk.Frame(self, bg=C["border"], height=1).pack(fill="x")
@@ -768,6 +830,583 @@ class TaskEditor(tk.Toplevel):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+#  HELP DIALOG
+# ══════════════════════════════════════════════════════════════════════════════
+class HelpDialog(tk.Toplevel):
+    """Comprehensive help & about dialog with tab navigation."""
+
+    _PAGES = [
+        ("🏠  Overview", "overview"),
+        ("🚀  Quick Start", "quickstart"),
+        ("📝  Template Guide", "template"),
+        ("🔄  Transpose Mode", "transpose"),
+        ("❓  FAQ", "faq"),
+        ("👤  About & Contact", "about"),
+    ]
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Help & User Guide — ASBC Converter Pro")
+        self.geometry("960x700")
+        self.configure(bg=C["bg"])
+        self.minsize(800, 550)
+        self.grab_set()
+        self._active = None
+        self._build()
+
+    # ── Layout ───────────────────────────────────────────────────────────────
+    def _build(self):
+        # Header
+        hdr = tk.Frame(self, bg=C["header"], height=52)
+        hdr.pack(fill="x")
+        hdr.pack_propagate(False)
+        left = tk.Frame(hdr, bg=C["header"])
+        left.pack(side="left", padx=20, pady=10)
+        icon = tk.Frame(left, bg="#7c3aed", width=30, height=30)
+        icon.pack_propagate(False)
+        icon.pack(side="left", padx=(0, 10))
+        tk.Label(icon, text="?", bg="#7c3aed", fg="white", font=(FF, 13, "bold")).pack(
+            expand=True
+        )
+        tk.Label(
+            left,
+            text="Help & User Guide",
+            bg=C["header"],
+            fg=C["text_w"],
+            font=(FF, 12, "bold"),
+        ).pack(side="left")
+        tk.Label(
+            left,
+            text=f"  —  {APP_NAME} {APP_VER}",
+            bg=C["header"],
+            fg=C["text_m"],
+            font=(FF, 9),
+        ).pack(side="left")
+        right = tk.Frame(hdr, bg=C["header"])
+        right.pack(side="right", padx=16)
+        flat_btn(
+            right,
+            "×  Close",
+            self.destroy,
+            "#374151",
+            "#4b5563",
+            "#9ca3af",
+            padx=10,
+            pady=4,
+        ).pack()
+        tk.Frame(self, bg=C["primary"], height=3).pack(fill="x")
+
+        # Body
+        body = tk.Frame(self, bg=C["bg"])
+        body.pack(fill="both", expand=True)
+
+        # Left navigation
+        nav = tk.Frame(body, bg="#1e293b", width=185)
+        nav.pack(side="left", fill="y")
+        nav.pack_propagate(False)
+        tk.Label(
+            nav,
+            text="  CONTENTS",
+            bg="#1e293b",
+            fg="#475569",
+            font=(FF, 8, "bold"),
+            pady=12,
+        ).pack(fill="x", anchor="w")
+
+        # Content area
+        self._content = tk.Frame(body, bg=C["bg"])
+        self._content.pack(side="left", fill="both", expand=True)
+
+        self._btns = {}
+        self._frames = {}
+        for label, key in self._PAGES:
+            btn = tk.Label(
+                nav,
+                text=f"   {label}",
+                bg="#1e293b",
+                fg="#94a3b8",
+                font=(FF, 10),
+                anchor="w",
+                pady=10,
+                cursor="hand2",
+            )
+            btn.pack(fill="x")
+            btn.bind(
+                "<Enter>",
+                lambda e, b=btn, k=key: b.configure(
+                    bg=C["primary"] if self._active == k else "#2d3748"
+                ),
+            )
+            btn.bind(
+                "<Leave>",
+                lambda e, b=btn, k=key: b.configure(
+                    bg=C["primary"] if self._active == k else "#1e293b"
+                ),
+            )
+            btn.bind("<Button-1>", lambda e, k=key: self._show(k))
+            sf = ScrollableFrame(self._content, bg=C["bg"])
+            self._btns[key] = btn
+            self._frames[key] = sf
+            getattr(self, f"_pg_{key}")(sf.inner)
+
+        self._show("overview")
+
+    def _show(self, key):
+        for k, sf in self._frames.items():
+            sf.pack_forget()
+            self._btns[k].configure(bg="#1e293b", fg="#94a3b8")
+        self._frames[key].pack(fill="both", expand=True)
+        self._btns[key].configure(bg=C["primary"], fg="white")
+        self._active = key
+
+    # ── Shared Helpers ───────────────────────────────────────────────────────
+    def _sec(self, p, title):
+        f = tk.Frame(p, bg=C["bg"])
+        f.pack(fill="x", padx=22, pady=(14, 2))
+        tk.Label(f, text=title, bg=C["bg"], fg=C["text"], font=(FF, 11, "bold")).pack(
+            anchor="w"
+        )
+        tk.Frame(f, bg=C["primary"], height=2).pack(fill="x", pady=(3, 0))
+
+    def _para(self, p, text):
+        tk.Label(
+            p,
+            text=text,
+            bg=C["bg"],
+            fg=C["text_s"],
+            font=(FF, 10),
+            justify="left",
+            anchor="w",
+            padx=22,
+            pady=2,
+            wraplength=640,
+        ).pack(fill="x")
+
+    def _card(self, p, title, body_text, hdr_color=None):
+        card = tk.Frame(
+            p, bg=C["card"], highlightbackground=C["border"], highlightthickness=1
+        )
+        card.pack(fill="x", padx=22, pady=(0, 8))
+        hdr = tk.Frame(card, bg=hdr_color or C["card_alt"], height=30)
+        hdr.pack(fill="x")
+        hdr.pack_propagate(False)
+        tk.Label(
+            hdr,
+            text=f"  {title}",
+            bg=hdr_color or C["card_alt"],
+            fg="white" if hdr_color else C["text"],
+            font=(FF, 9, "bold"),
+        ).pack(side="left", pady=6)
+        tk.Label(
+            card,
+            text=body_text,
+            bg=C["card"],
+            fg=C["text_s"],
+            font=(FM, 9),
+            justify="left",
+            anchor="w",
+            padx=14,
+            pady=8,
+        ).pack(fill="x")
+
+    def _step(self, p, num, color, title, desc):
+        card = tk.Frame(
+            p, bg=C["card"], highlightbackground=C["border"], highlightthickness=1
+        )
+        card.pack(fill="x", padx=22, pady=(0, 7))
+        row = tk.Frame(card, bg=C["card"])
+        row.pack(fill="x", padx=12, pady=10)
+        badge = tk.Frame(row, bg=color, width=32, height=32)
+        badge.pack_propagate(False)
+        badge.pack(side="left", padx=(0, 12))
+        tk.Label(
+            badge, text=str(num), bg=color, fg="white", font=(FF, 12, "bold")
+        ).pack(expand=True)
+        col = tk.Frame(row, bg=C["card"])
+        col.pack(side="left", fill="x", expand=True)
+        tk.Label(
+            col,
+            text=title,
+            bg=C["card"],
+            fg=C["text"],
+            font=(FF, 10, "bold"),
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            col,
+            text=desc,
+            bg=C["card"],
+            fg=C["text_s"],
+            font=(FF, 9),
+            justify="left",
+            anchor="w",
+        ).pack(fill="x")
+
+    # ── Pages ────────────────────────────────────────────────────────────────
+    def _pg_overview(self, p):
+        banner = tk.Frame(p, bg=C["primary"])
+        banner.pack(fill="x", padx=22, pady=(18, 4))
+        tk.Label(
+            banner,
+            text=f"⚡  {APP_NAME}  {APP_VER}",
+            bg=C["primary"],
+            fg="white",
+            font=(FF, 14, "bold"),
+            padx=20,
+            pady=12,
+        ).pack(anchor="w")
+        tk.Label(
+            banner,
+            text=APP_SUB + "  —  แปลงข้อมูล Excel → ไฟล์ทุกรูปแบบด้วย Template",
+            bg=C["primary"],
+            fg="#bfdbfe",
+            font=(FF, 9),
+            padx=20,
+            pady=(0, 12),
+        ).pack(anchor="w")
+
+        self._sec(p, "โปรแกรมนี้ทำอะไร?")
+        self._para(
+            p,
+            "ASBC ช่วยแปลงข้อมูลจาก Excel / CSV ให้เป็นไฟล์รูปแบบใดก็ได้\n"
+            "เช่น CSV สำหรับนำเข้าระบบ, ไฟล์ Config, ไฟล์ SQL, Properties หรือรายงาน\n"
+            "โดยกำหนดรูปแบบผ่าน Template เองได้ 100%",
+        )
+
+        self._sec(p, "ความสามารถหลัก")
+        card = tk.Frame(
+            p, bg=C["card"], highlightbackground=C["border"], highlightthickness=1
+        )
+        card.pack(fill="x", padx=22, pady=(0, 16))
+        for icon_text, title, desc in [
+            ("📥", "Input", ".xlsx, .xls, .csv — เลือก Sheet ได้"),
+            ("📤", "Output", ".csv, .txt, .json, .sidata และอื่นๆ"),
+            ("📝", "Template", "Header / Body / Footer กำหนดเองได้อิสระ"),
+            ("🔄", "Transpose", "แปลงตาราง → คู่ Key-Value แนวตั้ง"),
+            ("📋", "Multi-Project", "จัดการหลาย Project รันพร้อมกันได้"),
+            ("🔒", "License", "1 License = 1 เครื่อง ป้องกันการใช้งานโดยไม่อนุญาต"),
+        ]:
+            row = tk.Frame(card, bg=C["card"])
+            row.pack(fill="x", padx=14, pady=5)
+            tk.Label(
+                row, text=f"  {icon_text}", bg=C["card"], font=(FF, 12), width=4
+            ).pack(side="left")
+            tk.Label(
+                row,
+                text=title,
+                bg=C["card"],
+                fg=C["primary"],
+                font=(FF, 10, "bold"),
+                width=14,
+                anchor="w",
+            ).pack(side="left")
+            tk.Label(
+                row, text=desc, bg=C["card"], fg=C["text_s"], font=(FF, 10), anchor="w"
+            ).pack(side="left")
+            tk.Frame(card, bg=C["border"], height=1).pack(fill="x", padx=14)
+
+    def _pg_quickstart(self, p):
+        self._sec(p, "เริ่มต้นใช้งานใน 5 ขั้นตอน")
+        steps = [
+            (
+                C["primary"],
+                "สร้าง Project ใหม่",
+                "กดปุ่ม ➤ New Project ที่หน้าหลัก  •  ใส่ชื่อ Project",
+            ),
+            (
+                C["success"],
+                "เลือกไฟล์และ Sheet",
+                "กด Browse เลือกไฟล์ Excel  •  เลือก Sheet จากรายการที่โหลดอัตโนมัติ",
+            ),
+            (
+                "#7c3aed",
+                "เขียน Body Template",
+                "กดปุ่ม ✏ Edit  •  ใช้ {{ ชื่อคอลัมน์ }} ดึงข้อมูลจาก Excel  •  กด Ctrl+S บันทึก",
+            ),
+            (
+                C["warning"],
+                "กำหนด Output Path",
+                "ระบุชื่อและ Path ไฟล์ผลลัพธ์  •  กด Save Project",
+            ),
+            (
+                C["danger"],
+                "กด RUN และรับไฟล์",
+                "เลือก Project ที่ต้องการ  •  กด 🚀 RUN SELECTED PROJECTS  •  รับไฟล์ Output",
+            ),
+        ]
+        for i, (color, title, desc) in enumerate(steps, 1):
+            self._step(p, i, color, title, desc)
+
+    def _pg_template(self, p):
+        self._sec(p, "โครงสร้าง Template")
+        self._para(p, "Template แบ่งเป็น 3 ส่วน โปรแกรมจะประมวลผลตามลำดับ:")
+        card = tk.Frame(
+            p, bg=C["card"], highlightbackground=C["border"], highlightthickness=1
+        )
+        card.pack(fill="x", padx=22, pady=(0, 10))
+        for clr, name, detail in [
+            (
+                "#2563eb",
+                "HEADER",
+                "แสดง 1 ครั้ง • ด้านบนสุด\nตัวอย่าง: หัวตาราง, DOCTYPE, opening tag",
+            ),
+            (
+                "#059669",
+                "BODY  ",
+                "วนซ้ำ 1 รอบ / 1 แถวข้อมูล\nตัวอย่าง: กำหนดรูปแบบโดยใช้ {{ }}",
+            ),
+            (
+                "#7c3aed",
+                "FOOTER",
+                "แสดง 1 ครั้ง • ด้านล่างสุด\nตัวอย่าง: ปิด tag, summary, footer",
+            ),
+        ]:
+            row = tk.Frame(card, bg=C["card"])
+            row.pack(fill="x", padx=14, pady=8)
+            badge = tk.Frame(row, bg=clr, width=62, height=36)
+            badge.pack_propagate(False)
+            badge.pack(side="left", padx=(0, 12))
+            tk.Label(badge, text=name, bg=clr, fg="white", font=(FM, 9, "bold")).pack(
+                expand=True
+            )
+            tk.Label(
+                row,
+                text=detail,
+                bg=C["card"],
+                fg=C["text_s"],
+                font=(FF, 9),
+                justify="left",
+                anchor="w",
+            ).pack(side="left")
+            tk.Frame(card, bg=C["border"], height=1).pack(fill="x", padx=14)
+
+        self._sec(p, "วิธีดึงข้อมูลจาก Excel")
+        self._para(p, "ใช้ {{ ชื่อคอลัมน์ }} ใน Body Template ตามชื่อ Header ใน Excel:")
+        self._card(
+            p,
+            "ตัวอย่าง: Excel มีคอลัมน์  CI Name, OS, IP Address",
+            "CI_NAME={{ CI Name }}\nOS_TYPE={{ OS }}\nIP_ADDR={{ IP Address }}\n---",
+            "#374151",
+        )
+
+        self._sec(p, "ข้อควรระวัง")
+        card = tk.Frame(
+            p, bg=C["card"], highlightbackground=C["border"], highlightthickness=1
+        )
+        card.pack(fill="x", padx=22, pady=(0, 20))
+        for note in [
+            ("ชื่อต้องตรง", "ชื่อใน {{ }} ต้องสะกดตรงกับ Header ใน Excel"),
+            ("เอ็มเล็ก-ใหญ่", "ใช้ได้ทั้งคู่  —  {{ CI Name }} เท่ากับ {{ ci name }}"),
+            ("ตัวพิมพ์", "Ctrl+S = Save  •  Alt+F4 = Cancel"),
+        ]:
+            row = tk.Frame(card, bg=C["card"])
+            row.pack(fill="x", padx=14, pady=5)
+            tk.Label(
+                row,
+                text=note[0],
+                bg=C["card"],
+                fg=C["primary"],
+                font=(FF, 9, "bold"),
+                width=14,
+                anchor="w",
+            ).pack(side="left")
+            tk.Label(
+                row,
+                text=note[1],
+                bg=C["card"],
+                fg=C["text_s"],
+                font=(FF, 9),
+                anchor="w",
+            ).pack(side="left")
+            tk.Frame(card, bg=C["border"], height=1).pack(fill="x", padx=14)
+
+    def _pg_transpose(self, p):
+        self._sec(p, "Transpose Mode คืออะไร?")
+        self._para(
+            p,
+            "โหมดนี้แปลงตารางแนวนอน (ปกติ) ให้กลายเป็นคู่ Key-Value แนวตั้ง\n"
+            "เหมาะสำหรับ: ไฟล์ Properties, Config, หรือ ต้องการ 1 Property ต่อบรรทัด",
+        )
+        self._sec(p, "วิธีเปิดใช้งาน")
+        self._para(
+            p,
+            "ในหน้า Edit Project ใส่ชื่อคอลัมน์ ID ลงใน 'Transpose Column ID'  เช่น RunningNo หรือ ID",
+        )
+        self._sec(p, "ตัวอย่าง")
+        self._card(
+            p,
+            "📊 ข้อมูลใน Excel (ก่อน Transpose)",
+            "RunningNo  Hostname   OS       IP\n"
+            "1          SERVER-01  Windows  10.0.0.1\n"
+            "2          SERVER-02  Linux    10.0.0.2",
+            "#374151",
+        )
+        self._card(p, "📝 Body Template", "{{ ID }},{{ Key }},{{ Value }}", "#7c3aed")
+        self._card(
+            p,
+            "📄 ผลลัพธ์",
+            "1,Hostname,SERVER-01\n1,OS,Windows\n1,IP,10.0.0.1\n"
+            "2,Hostname,SERVER-02\n2,OS,Linux\n2,IP,10.0.0.2",
+            "#059669",
+        )
+        self._sec(p, "Variable พิเศษ")
+        card = tk.Frame(
+            p, bg=C["card"], highlightbackground=C["border"], highlightthickness=1
+        )
+        card.pack(fill="x", padx=22, pady=(0, 20))
+        for var, desc in [
+            ("{{ ID }}    ", "ค่าจากคอลัมน์ที่ระบุใน Transpose Column ID"),
+            ("{{ Key }}   ", "ชื่อคอลัมน์ (Header) จาก Excel"),
+            ("{{ Value }}  ", "ข้อมูลในช่องนั้น ณ แถวนั้น"),
+        ]:
+            row = tk.Frame(card, bg=C["card"])
+            row.pack(fill="x", padx=14, pady=7)
+            tk.Label(
+                row,
+                text=var,
+                bg="#1e2030",
+                fg="#a6e3a1",
+                font=(FM, 11, "bold"),
+                padx=8,
+                pady=4,
+            ).pack(side="left", padx=(0, 12))
+            tk.Label(
+                row, text=desc, bg=C["card"], fg=C["text_s"], font=(FF, 10), anchor="w"
+            ).pack(side="left")
+            tk.Frame(card, bg=C["border"], height=1).pack(fill="x", padx=14)
+
+    def _pg_faq(self, p):
+        self._sec(p, "คำถามที่พบบ่อย")
+        faqs = [
+            (
+                "ภาษาไทยใน Output อ่านไม่ออก?",
+                "เพิ่ม encoding = cp874 ในหน้า Edit Project (ค่าเริ่มต้นคือ utf-8)",
+            ),
+            (
+                "ไฟล์ Excel เปิดค้างอยู่แล้วรัน Error?",
+                "ปิดไฟล์ Excel ทั้งต้นทางและปลายทางก่อนกด RUN",
+            ),
+            (
+                "Template แสดงชื่อ {{ }} แทนข้อมูล?",
+                "ชื่อใน {{ }} สะกดไม่ตรงกับ Header ใน Excel — ตรวจสอบการสะกดอีกครั้ง",
+            ),
+            (
+                "เปลี่ยนเครื่องใหม่ ต้องทำอย่างไร?",
+                "ส่ง Machine ID ของเครื่องใหม่ให้ผู้พัฒนา เพื่อขอ License Key ใหม่",
+            ),
+            (
+                "รัน Error: ไม่พบไฟล์ต้นทาง?",
+                "ไฟล์ถูกย้ายหรือลบ — กด Edit แล้ว Browse เลือกไฟล์ใหม่",
+            ),
+            ("รันแล้ว Output ว่างเปล่า?", "ตรวจสอบ Body Template ว่าเขียน {{ }} ถูกต้องหรือไม่"),
+        ]
+        for i, (q, a) in enumerate(faqs, 1):
+            card = tk.Frame(
+                p, bg=C["card"], highlightbackground=C["border"], highlightthickness=1
+            )
+            card.pack(fill="x", padx=22, pady=(0, 7))
+            qf = tk.Frame(card, bg="#eff6ff")
+            qf.pack(fill="x")
+            tk.Label(
+                qf,
+                text=f"  Q{i}:  {q}",
+                bg="#eff6ff",
+                fg=C["primary"],
+                font=(FF, 9, "bold"),
+                padx=8,
+                pady=7,
+                anchor="w",
+                justify="left",
+            ).pack(fill="x")
+            tk.Label(
+                card,
+                text=f"     ▶  {a}",
+                bg=C["card"],
+                fg=C["text_s"],
+                font=(FF, 9),
+                padx=14,
+                pady=7,
+                anchor="w",
+                justify="left",
+            ).pack(fill="x")
+
+    def _pg_about(self, p):
+        # Developer card
+        dev = tk.Frame(p, bg=C["header"])
+        dev.pack(fill="x", padx=22, pady=(18, 4))
+        inner = tk.Frame(dev, bg=C["header"])
+        inner.pack(fill="x", padx=22, pady=20)
+        icon_box = tk.Frame(inner, bg=C["primary"], width=60, height=60)
+        icon_box.pack_propagate(False)
+        icon_box.pack(side="left", padx=(0, 18))
+        tk.Label(
+            icon_box,
+            text="👤",
+            bg=C["primary"],
+            fg="white",
+            font=("Segoe UI Emoji", 26),
+        ).pack(expand=True)
+        col = tk.Frame(inner, bg=C["header"])
+        col.pack(side="left")
+        tk.Label(
+            col, text=DEVELOPER, bg=C["header"], fg="white", font=(FF, 15, "bold")
+        ).pack(anchor="w")
+        tk.Label(
+            col,
+            text="Developer & Owner — ASBC Converter Pro",
+            bg=C["header"],
+            fg=C["text_m"],
+            font=(FF, 10),
+        ).pack(anchor="w")
+
+        self._sec(p, "ข้อมูลติดต่อ")
+        card = tk.Frame(
+            p, bg=C["card"], highlightbackground=C["border"], highlightthickness=1
+        )
+        card.pack(fill="x", padx=22, pady=(0, 12))
+        for icon, label, value, color in [
+            ("📧", "Email", "sarawut.shi@mahidol.ac.th", C["primary"]),
+            ("🏢", "สังกัด", "Mahidol University", C["text_s"]),
+            ("🌐", "Version", f"{APP_NAME} {APP_VER}", C["text_s"]),
+            ("📅", "ปีที่พัฒนา", "2025", C["text_s"]),
+        ]:
+            row = tk.Frame(card, bg=C["card"])
+            row.pack(fill="x", padx=14, pady=8)
+            tk.Label(
+                row,
+                text=f"  {icon}  {label}",
+                bg=C["card"],
+                fg=C["text"],
+                font=(FF, 10, "bold"),
+                width=14,
+                anchor="w",
+            ).pack(side="left")
+            tk.Label(
+                row, text=value, bg=C["card"], fg=color, font=(FF, 10), anchor="w"
+            ).pack(side="left")
+            tk.Frame(card, bg=C["border"], height=1).pack(fill="x", padx=14)
+
+        self._sec(p, "License")
+        lic = tk.Frame(
+            p, bg="#fef3c7", highlightbackground="#fbbf24", highlightthickness=1
+        )
+        lic.pack(fill="x", padx=22, pady=(0, 20))
+        tk.Label(
+            lic,
+            text="  ⚠️  Proprietary Software — สงวนลิขสิทธิ์ทุกประการ\n"
+            "  การใช้งานต้องได้รับ License Key จากผู้พัฒนาเท่านั้น\n"
+            f"  © 2025  {DEVELOPER}  —  All rights reserved.",
+            bg="#fef3c7",
+            fg="#92400e",
+            font=(FF, 10),
+            padx=14,
+            pady=14,
+            anchor="w",
+            justify="left",
+        ).pack(fill="x")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 #  MAIN APPLICATION WINDOW
 # ══════════════════════════════════════════════════════════════════════════════
 class ASBCGui:
@@ -973,7 +1612,21 @@ class ASBCGui:
             C["danger"],
             padx=14,
             pady=8,
-        ).pack(side="left")
+        ).pack(side="left", padx=(0, 14))
+
+        # Divider
+        tk.Frame(right, bg=C["border"], width=1).pack(side="left", fill="y", pady=4)
+
+        flat_btn(
+            right,
+            "❓  Help",
+            lambda: HelpDialog(self.root),
+            C["card"],
+            "#ede9fe",
+            "#7c3aed",
+            padx=14,
+            pady=8,
+        ).pack(side="left", padx=(14, 0))
 
     def _build_project_list(self, parent):
         # Card wrapper
