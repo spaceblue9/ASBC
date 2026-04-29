@@ -1,0 +1,25 @@
+# ── Python Cache ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# ── PyInstaller Build Artifacts ───────────────────────────────
+build/
+dist/
+*.spec
+
+# ── License Files (per-machine, not for version control) ──────
+license.dat
+
+# ── OS / Editor ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+nul
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
