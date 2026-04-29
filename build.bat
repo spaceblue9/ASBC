@@ -8,14 +8,15 @@ echo   ASBC Converter Pro - Build to .EXE
 echo  ============================================
 echo.
 
-echo [1/3] Installing PyInstaller...
-pip install pyinstaller --quiet
-if errorlevel 1 (
-    echo ERROR: pip install failed
-    pause & exit /b 1
-)
+echo [1/4] Upgrading PyInstaller...
+pip install --upgrade pyinstaller --quiet
 
-echo [2/3] Building .exe ...
+echo [2/4] Cleaning previous build cache...
+if exist build  rmdir /s /q build
+if exist dist   rmdir /s /q dist
+if exist "ASBC Converter Pro.spec" del /q "ASBC Converter Pro.spec"
+
+echo [3/4] Building .exe  (please wait 2-5 minutes)...
 pyinstaller ^
   --onefile ^
   --windowed ^
@@ -23,17 +24,44 @@ pyinstaller ^
   --name="ASBC Converter Pro" ^
   --add-data "ea.ico;." ^
   --add-data "ASBC-Config.ini;." ^
+  --copy-metadata numpy ^
+  --copy-metadata pandas ^
+  --collect-all openpyxl ^
+  --hidden-import xlrd ^
+  --noupx ^
+  --exclude-module torch ^
+  --exclude-module torchvision ^
+  --exclude-module torchaudio ^
+  --exclude-module tensorflow ^
+  --exclude-module keras ^
+  --exclude-module sklearn ^
+  --exclude-module scipy ^
+  --exclude-module matplotlib ^
+  --exclude-module IPython ^
+  --exclude-module jupyter ^
+  --exclude-module notebook ^
+  --exclude-module numba ^
+  --exclude-module llvmlite ^
+  --exclude-module transformers ^
+  --exclude-module PIL ^
+  --exclude-module cv2 ^
+  --exclude-module imageio ^
+  --exclude-module sympy ^
+  --exclude-module zmq ^
+  --exclude-module pyarrow ^
   ASBC_GUI.py
 
 if errorlevel 1 (
-    echo ERROR: Build failed
+    echo.
+    echo  ERROR: Build failed
     pause & exit /b 1
 )
 
-echo [3/3] Build complete!
+echo [4/4] Build complete!
 echo.
-echo  Output: dist\ASBC Converter Pro.exe
-echo.
-echo  *** Do NOT include keygen.py in distribution ***
+echo  ===================================================
+echo   Output  :  dist\ASBC Converter Pro.exe
+echo   *** อย่าแจก keygen.py ให้ลูกค้า ***
+echo  ===================================================
 echo.
 pause
