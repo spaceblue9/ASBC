@@ -1,84 +1,227 @@
-# คู่มือการใช้งานโปรแกรม ASBC (Advanced ScriptBot Converter)
+# ⚡ ASBC Converter Pro
 
-**ASBC** คือโปรแกรมช่วยเปลี่ยนข้อมูลจากไฟล์ Excel หรือไฟล์ตารางต่างๆ ให้กลายเป็นรูปแบบใหม่ตามที่เราต้องการ (เช่น ไฟล์สำหรับส่งเข้าระบบ, ไฟล์ SQL หรือไฟล์รายงาน) โดยที่คุณสามารถกำหนดรูปแบบเองได้ 100%
+**Advanced ScriptBot Converter** — โปรแกรมแปลงข้อมูลจาก Excel / CSV ให้เป็นไฟล์ Output ตามรูปแบบ Template ที่กำหนดเองได้ 100%
 
----
-
-## 1. เตรียมความพร้อมก่อนเริ่ม
-โปรแกรมนี้จะทำงานร่วมกับ "โฟลเดอร์" ดังนี้:
-- **input**: สำหรับวางไฟล์ต้นฉบับ (ไฟล์ Excel หรือ CSV ที่คุณได้มา)
-- **output**: โฟลเดอร์ที่ไฟล์ผลลัพธ์จะไปปรากฏหลังจากรันโปรแกรมเสร็จ
-- **ไฟล์ Template (.txt)**: คือไฟล์ตัวอย่างรูปแบบที่คุณต้องการ (เช่น `elements_header.txt`, `elements_body.txt`)
+> พัฒนาโดย **นายศราวุฒิ สิทธารถ** &nbsp;|&nbsp; Version 2.0 &nbsp;|&nbsp; Python 3.x + Tkinter
 
 ---
 
-## 2. วิธีการรันโปรแกรม (สำหรับผู้ใช้)
-คุณสามารถใช้งานได้ 2 วิธี:
-1. **แบบหน้าจอ (GUI):** ดับเบิลคลิกที่ไฟล์ `ASBC_GUI.py` จะมีหน้าต่างขึ้นมาให้คุณเลือกไฟล์และกดปุ่ม **"GENERATE SCRIPT"**
-2. **แบบอัตโนมัติ (Manual):** ดับเบิลคลิกที่ไฟล์ `ASBC_Main.py` โปรแกรมจะทำงานตามที่ตั้งค่าไว้ในไฟล์ `ASBC-Config.ini` ทันที
+## ✨ ความสามารถหลัก
+
+| ความสามารถ | รายละเอียด |
+|------------|-----------|
+| 📥 **รับไฟล์ได้หลายรูปแบบ** | `.xlsx`, `.xls`, `.csv` พร้อมเลือก Sheet ได้ |
+| 📤 **ส่งออกได้ทุกรูปแบบ** | `.csv`, `.json`, `.txt`, `.sidata` และอื่นๆ |
+| 📝 **Template Engine** | กำหนด Header / Body / Footer เองได้อิสระ |
+| 🔄 **Transpose Mode** | แปลงตารางแนวนอน → คู่ Key-Value แนวตั้ง |
+| 📋 **Multi-Project** | จัดการหลาย Project พร้อมกัน รันทีเดียวได้หลายงาน |
+| 🔒 **License Protection** | 1 License = 1 เครื่อง ป้องกันการใช้งานโดยไม่ได้รับอนุญาต |
 
 ---
 
-## 3. วิธีตั้งค่าการทำงาน (ไฟล์ ASBC-Config.ini)
-ไฟล์นี้คือ "ใบสั่งงาน" ของโปรแกรม หากคุณต้องการเพิ่มไฟล์ Output ใหม่ หรือเปลี่ยนไฟล์ Input ให้เปิดไฟล์นี้ด้วยโปรแกรม **Notepad**
+## 🖥️ หน้าตาโปรแกรม
 
-### การเพิ่มงาน (Task)
-1 งาน (Task) = 1 ไฟล์ผลลัพธ์ หากต้องการออก 2 ไฟล์ ก็ต้องมี 2 Task ดังนี้:
-
-```ini
-[Task:งานที่หนึ่ง]
-file_path = input/ชื่อไฟล์ของคุณ.xlsx
-header_file = ไฟล์หัว.txt
-body_file = ไฟล์เนื้อหา.txt
-output_name = output/ชื่อไฟล์ผลลัพธ์1.csv
-melt_id_vars = 
-
-[Task:งานที่สอง]
-file_path = input/ชื่อไฟล์ของคุณ.xlsx
-header_file = ไฟล์หัวอีกอัน.txt
-body_file = ไฟล์เนื้อหาอีกอัน.txt
-output_name = output/ชื่อไฟล์ผลลัพธ์2.csv
-melt_id_vars = No.
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ⚡ ASBC Converter Pro                              v2.0        │  ← Header
+├─────────────────────────────────────────────────────────────────┤
+│  📋 Active Projects              [➕ New] [✏ Edit] [🗑 Delete]  │  ← Toolbar
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  📁 Project Name  │  📂 Output Path  │  ⚙ Mode         │   │  ← Project List
+│  │  Archi-elements   │  .../elements.csv │  📋 Normal      │   │
+│  │  Archi-properties │  .../props.csv    │  🔄 Transpose   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│  ⚙ Execution Panel          [🚀 RUN SELECTED PROJECTS]         │  ← Run Panel
+├─────────────────────────────────────────────────────────────────┤
+│  ✅ Ready — 2 project(s) loaded        ASBC Converter Pro © 2025│  ← Status Bar
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**คำอธิบายหัวข้อที่สำคัญ:**
-- `file_path`: ชื่อไฟล์ต้นฉบับของคุณ (ต้องอยู่ในโฟลเดอร์ input)
-- `output_name`: ชื่อไฟล์ที่คุณอยากให้โปรแกรมสร้าง (จะไปอยู่ในโฟลเดอร์ output)
-- `melt_id_vars`: 
-    - **ถ้าเว้นว่าง:** โปรแกรมจะทำ 1 แถวใน Excel ออกมาเป็น 1 แถวในไฟล์ใหม่ (แบบปกติ)
-    - **ถ้าใส่ชื่อหัวคอลัมน์ (เช่น No.):** โปรแกรมจะทำ 1 แถวใน Excel ออกมาเป็น "หลายแถว" โดยเอาหัวคอลัมน์มาเป็นหัวข้อ (แบบ Transpose เหมือนไฟล์ Properties)
+---
+
+## 🔒 การลงทะเบียน (License Activation)
+
+โปรแกรมต้องลงทะเบียนก่อนใช้งาน **ทำเพียงครั้งเดียวต่อเครื่อง**
+
+### ขั้นตอนสำหรับผู้ใช้
+
+```
+1. เปิดโปรแกรม → หน้า Activation จะขึ้นมาอัตโนมัติ
+2. กด [📋 Copy] เพื่อคัดลอก Machine ID
+3. ส่ง Machine ID ให้ผู้พัฒนา (Line / Email)
+4. รับ License Key กลับมา (รูปแบบ XXXXX-XXXXX-XXXXX-XXXXX)
+5. วาง License Key ในช่อง Step 2 แล้วกด [🔓 Activate License]
+6. ✅ ลงทะเบียนสำเร็จ — ใช้งานได้ปกติ ไม่ต้องทำซ้ำ
+```
+
+> ⚠️ License ผูกกับเครื่องนี้เครื่องเดียว หากเปลี่ยนเครื่องต้องขอ License ใหม่
 
 ---
 
-## 4. วิธีการเขียน Template (หัวใจของการแปลงไฟล์)
-Template คือการบอกโปรแกรมว่า "จงเอาข้อมูลจากช่องนี้ มาวางตรงนี้" โดยใช้เครื่องหมาย `{{ ... }}`
+## 🚀 วิธีใช้งาน
 
-### แบบที่ 1: การดึงข้อมูลตามชื่อหัวคอลัมน์ (แนะนำ)
-ถ้าใน Excel ของคุณมีหัวคอลัมน์ชื่อ **"CI Name"** และ **"IP Address"**
-คุณสามารถเขียนในไฟล์เนื้อหา (Body.txt) ว่า:
-> ชื่อเซิร์ฟเวอร์คือ: {{CI Name}} และมีไอพีคือ: {{IP Address}}
+### 1. สร้าง Project ใหม่
 
-### แบบที่ 2: การทำไฟล์แบบ Properties (แนวตั้ง)
-หากคุณตั้งค่า `melt_id_vars` ไว้ โปรแกรมจะมีคำสั่งพิเศษ 3 คำสั่ง:
-- `{{ID}}`: จะดึงเลขลำดับมาใส่
-- `{{Key}}`: จะดึง **"ชื่อหัวข้อคอลัมน์"** จาก Excel มาใส่
-- `{{Value}}`: จะดึง **"ข้อมูลในช่องนั้น"** มาใส่
-**ตัวอย่างการเขียน:** `{{ID}},{{Key}},{{Value}}`
+กดปุ่ม **➕ New Project** แล้วกรอกข้อมูล:
+
+| ฟิลด์ | คำอธิบาย |
+|-------|---------|
+| **Project Name** | ชื่อ Project (Folder จะถูกสร้างอัตโนมัติ) |
+| **Source Excel File** | เลือกไฟล์ข้อมูลต้นทาง (.xlsx / .xls / .csv) |
+| **Sheet Name / Index** | เลือก Sheet (โหลดรายชื่ออัตโนมัติเมื่อเลือกไฟล์) |
+| **Header Template** | Template สำหรับส่วนหัว (แสดงครั้งเดียว) |
+| **Body Template** | Template สำหรับเนื้อหา (วนซ้ำทุกแถวข้อมูล) |
+| **Footer Template** | Template สำหรับส่วนท้าย (แสดงครั้งเดียว) |
+| **Output File Path** | Path ของไฟล์ผลลัพธ์ที่ต้องการสร้าง |
+| **Transpose Column ID** | ชื่อคอลัมน์ ID สำหรับโหมด Transpose (เว้นว่างถ้าไม่ใช้) |
+
+### 2. เขียน Template
+
+กดปุ่ม **✏ Edit** ที่หน้า Template Editor เพื่อแก้ไขแบบ inline
+
+#### วิธีดึงข้อมูลจาก Excel
+
+ใช้ `{{ ชื่อคอลัมน์ }}` ตามชื่อ Header ใน Excel:
+
+```
+D:\ASBC\projects\MyProject\templates\body.txt#L1-3
+CI_NAME={{ CI Name }}
+OS={{ OS Version }}
+IP_ADDRESS={{ IP Address }}
+```
+
+#### Variable พิเศษ (Transpose Mode)
+
+```
+D:\ASBC\projects\MyProject\templates\body.txt#L1-1
+{{ ID }},{{ Key }},{{ Value }}
+```
+
+| Variable | ความหมาย |
+|----------|---------|
+| `{{ ID }}` | หมายเลขแถว |
+| `{{ Key }}` | ชื่อคอลัมน์จาก Excel |
+| `{{ Value }}` | ข้อมูลในช่องนั้น |
+
+### 3. รันโปรแกรม
+
+1. เลือก Project ที่ต้องการ (คลิกเลือกได้หลาย Project พร้อมกัน)
+2. กดปุ่ม **🚀 RUN SELECTED PROJECTS**
+3. ไฟล์ผลลัพธ์จะถูกสร้างที่ Output Path ที่กำหนดไว้
 
 ---
 
-## 5. ปัญหาที่พบบ่อยและวิธีแก้ไข
-- **รันแล้ว Error (Traceback...):** ส่วนใหญ่เกิดจาก **"เปิดไฟล์ค้างไว้"** กรุณาปิดไฟล์ Excel ทั้งต้นฉบับและปลายทางก่อนกดรัน
-- **ภาษาไทยอ่านไม่ออก:** 
-  - โดยปกติโปรแกรมจะใช้ `utf-8`
-  - หากนำไปเปิดใน Excel แล้วภาษาไทยเพี้ยน ให้ลองเปลี่ยนใน Config เป็น `encoding = cp874`
-- **หาคอลัมน์ไม่เจอ:** ตรวจสอบให้แน่ใจว่าชื่อใน `{{ ... }}` พิมพ์สะกดตรงกับใน Excel เป๊ะๆ (แต่โปรแกรมรุ่นนี้รองรับตัวพิมพ์เล็ก-ใหญ่ผสมกันได้แล้ว)
+## 📁 โครงสร้างโฟลเดอร์
+
+```
+ASBC/
+├── ASBC_GUI.py              # โปรแกรมหลัก (GUI)
+├── ASBC_Main.py             # Core Engine
+├── license_manager.py       # ระบบ License
+├── activate_dialog.py       # หน้าจอ Activation
+├── keygen.py                # ⚠️ เครื่องมือออก Key [ผู้พัฒนาเท่านั้น]
+├── build.bat                # Script สร้าง .exe
+├── ASBC-Config.ini          # ไฟล์ Config (บันทึก Project ทั้งหมด)
+├── ea.ico                   # ไอคอนโปรแกรม
+└── projects/                # โฟลเดอร์ Project
+    └── MyProject/
+        ├── input/           # วางไฟล์ Excel ต้นทางที่นี่
+        ├── templates/       # ไฟล์ Template
+        │   ├── header.txt
+        │   ├── body.txt
+        │   └── footer.txt
+        └── output/          # ไฟล์ผลลัพธ์จะออกมาที่นี่
+```
 
 ---
 
-## 6. สรุปขั้นตอนการทำงานจริง
-1. ก๊อปปี้ไฟล์ Excel ไปวางในโฟลเดอร์ `input`
-2. สร้างหรือแก้ไขไฟล์ Template (.txt) ให้ได้รูปแบบที่ต้องการ
-3. เข้าไปเพิ่ม Task ในไฟล์ `ASBC-Config.ini` (บอกชื่อไฟล์เข้า-ไฟล์ออก)
-4. รัน `ASBC_GUI.py` หรือ `ASBC_Main.py`
-5. ไปรับไฟล์ที่เสร็จแล้วในโฟลเดอร์ `output`
+## ⚙️ ไฟล์ Config (ASBC-Config.ini)
+
+โปรแกรมบันทึกการตั้งค่าในรูปแบบ INI โดยอัตโนมัติ ไม่จำเป็นต้องแก้ไขมือ แต่สามารถดูโครงสร้างได้ดังนี้:
+
+```ini
+D:\ASBC\ASBC-Config.ini#L1-9
+[Task:ชื่อ-Project]
+file_path    = path/to/input.xlsx
+sheet_name   = Sheet1
+header_file  = path/to/header.txt
+body_file    = path/to/body.txt
+footer_file  =
+output_name  = path/to/output.csv
+melt_id_vars =
+encoding     = utf-8
+```
+
+---
+
+## 🔧 การ Build เป็น .exe
+
+```bat
+# รัน build.bat เพื่อ compile โปรแกรมเป็น Standalone .exe
+build.bat
+```
+
+ไฟล์ `.exe` จะอยู่ที่ `dist\ASBC Converter Pro.exe`
+
+> ⚠️ **อย่าแจก `keygen.py` ให้ลูกค้า** — เก็บไว้เฉพาะผู้พัฒนาเท่านั้น
+
+---
+
+## 🛠️ สำหรับนักพัฒนา
+
+### Requirements
+
+```bash
+pip install pandas openpyxl xlrd pyinstaller
+```
+
+### รันจาก Source
+
+```bash
+python ASBC_GUI.py
+```
+
+### ออก License Key (Developer Only)
+
+```bash
+python keygen.py
+# ใส่ Machine ID ของลูกค้า → กด Generate → ได้ License Key
+```
+
+### Architecture
+
+```
+ASBC_GUI.py
+  └── license_manager.py   # HMAC-SHA256 + Machine Fingerprint (MAC+Hostname)
+  └── activate_dialog.py   # Activation UI
+  └── ASBC_Main.py         # Core: load → template → save
+        └── ASBC-Config.ini
+```
+
+---
+
+## ❓ คำถามที่พบบ่อย
+
+**Q: ภาษาไทยในไฟล์ Output อ่านไม่ออก?**
+> เพิ่ม `encoding = cp874` ในหน้า Edit Project
+
+**Q: รันแล้ว Error "ไม่พบไฟล์"?**
+> ตรวจสอบ Path ของไฟล์ใน Edit Project ว่าถูกต้องและไฟล์ยังอยู่ในตำแหน่งนั้น
+
+**Q: เปลี่ยนเครื่องใหม่ต้องทำอย่างไร?**
+> แจ้ง Machine ID ของเครื่องใหม่ให้ผู้พัฒนา เพื่อออก License Key ใหม่
+
+**Q: ตัวพิมพ์เล็ก-ใหญ่ใน `{{ }}` สำคัญไหม?**
+> ไม่สำคัญ — `{{ CI Name }}`, `{{ ci name }}`, `{{ CI NAME }}` ทำงานเหมือนกัน
+
+**Q: ไฟล์ Excel เปิดค้างอยู่แล้วรัน Error?**
+> ปิดไฟล์ Excel ทั้งต้นทางและปลายทางก่อนกด RUN
+
+---
+
+## 📄 License
+
+โปรแกรมนี้เป็น **Proprietary Software** สงวนลิขสิทธิ์ทุกประการ
+การใช้งานต้องได้รับ License Key จากผู้พัฒนาเท่านั้น
+
+© 2025 **นายศราวุฒิ สิทธารถ** — All rights reserved.
