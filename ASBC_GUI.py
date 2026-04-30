@@ -345,7 +345,7 @@ class TextEditor(tk.Toplevel):
         tk.Frame(c, bg="#059669", height=2).pack(fill="x")
         _txt(c, "ใช้ {{ ชื่อคอลัมน์ }} ใน Body Template")
         _txt(c, "ชื่อต้องตรงกับ Header ใน Excel")
-        _code(c, "{{ CI Name }}\n{{ OS Version }}\n{{ IP Address }}")
+        _code(c, "{{CI Name}}\n{{OS Version}}\n{{IP Address}}")
 
         _div(c)
 
@@ -354,7 +354,7 @@ class TextEditor(tk.Toplevel):
         tk.Frame(c, bg="#374151", height=2).pack(fill="x")
         _txt(c, "กรณีไฟล์ Excel มี column:\nCI Name, OS, IP Address")
         _code(
-            c, "CI_NAME={{ CI Name }}\nOS_TYPE={{ OS }}\nIP_ADDR={{ IP Address }}\n---"
+            c, "CI_NAME={{CI Name}}\nOS_TYPE={{OS}}\nIP_ADDR={{IP Address}}\n---"
         )
 
         _div(c)
@@ -1133,7 +1133,7 @@ class HelpDialog(tk.Toplevel):
             (
                 "#7c3aed",
                 "เขียน Body Template",
-                "กดปุ่ม ✏ Edit  •  ใช้ {{ ชื่อคอลัมน์ }} ดึงข้อมูลจาก Excel  •  กด Ctrl+S บันทึก",
+                "กดปุ่ม ✏ Edit  •  ใช้ {{ชื่อคอลัมน์}} ดึงข้อมูลจาก Excel  •  กด Ctrl+S บันทึก",
             ),
             (
                 C["warning"],
@@ -1193,11 +1193,11 @@ class HelpDialog(tk.Toplevel):
             tk.Frame(card, bg=C["border"], height=1).pack(fill="x", padx=14)
 
         self._sec(p, "วิธีดึงข้อมูลจาก Excel")
-        self._para(p, "ใช้ {{ ชื่อคอลัมน์ }} ใน Body Template ตามชื่อ Header ใน Excel:")
+        self._para(p, "ใช้ {{ชื่อคอลัมน์}} ใน Body Template ตามชื่อ Header ใน Excel:")
         self._card(
             p,
             "ตัวอย่าง: Excel มีคอลัมน์  CI Name, OS, IP Address",
-            "CI_NAME={{ CI Name }}\nOS_TYPE={{ OS }}\nIP_ADDR={{ IP Address }}\n---",
+            "CI_NAME={{CI Name}}\nOS_TYPE={{OS}}\nIP_ADDR={{IP Address}}\n---",
             "#374151",
         )
 
@@ -1208,7 +1208,7 @@ class HelpDialog(tk.Toplevel):
         card.pack(fill="x", padx=22, pady=(0, 20))
         for note in [
             ("ชื่อต้องตรง", "ชื่อใน {{ }} ต้องสะกดตรงกับ Header ใน Excel"),
-            ("เอ็มเล็ก-ใหญ่", "ใช้ได้ทั้งคู่  —  {{ CI Name }} เท่ากับ {{ ci name }}"),
+            ("เอ็มเล็ก-ใหญ่", "ใช้ได้ทั้งคู่  —  {{CI Name}} เท่ากับ {{ci name}}"),
             ("ตัวพิมพ์", "Ctrl+S = Save  •  Alt+F4 = Cancel"),
         ]:
             row = tk.Frame(card, bg=C["card"])
@@ -1253,7 +1253,7 @@ class HelpDialog(tk.Toplevel):
             "2          SERVER-02  Linux    10.0.0.2",
             "#374151",
         )
-        self._card(p, "📝 Body Template", "{{ ID }},{{ Key }},{{ Value }}", "#7c3aed")
+        self._card(p, "📝 Body Template", "{{ID}},{{Key}},{{Value}}", "#7c3aed")
         self._card(
             p,
             "📄 ผลลัพธ์",
@@ -1267,9 +1267,9 @@ class HelpDialog(tk.Toplevel):
         )
         card.pack(fill="x", padx=22, pady=(0, 20))
         for var, desc in [
-            ("{{ ID }}    ", "ค่าจากคอลัมน์ที่ระบุใน Transpose Column ID"),
-            ("{{ Key }}   ", "ชื่อคอลัมน์ (Header) จาก Excel"),
-            ("{{ Value }}  ", "ข้อมูลในช่องนั้น ณ แถวนั้น"),
+            ("{{ID}}    ", "ค่าจากคอลัมน์ที่ระบุใน Transpose Column ID"),
+            ("{{Key}}   ", "ชื่อคอลัมน์ (Header) จาก Excel"),
+            ("{{Value}}  ", "ข้อมูลในช่องนั้น ณ แถวนั้น"),
         ]:
             row = tk.Frame(card, bg=C["card"])
             row.pack(fill="x", padx=14, pady=7)
