@@ -328,12 +328,12 @@ class TextEditor(tk.Toplevel):
         ]:
             row = tk.Frame(c, bg=C["card"])
             row.pack(fill="x", padx=10, pady=2)
-            badge = tk.Frame(row, bg=clr, width=60)
+            badge = tk.Frame(row, bg=clr, width=60, height=28)
             badge.pack_propagate(False)
             badge.pack(side="left", padx=(0, 8))
             tk.Label(
-                badge, text=name, bg=clr, fg="white", font=(FM, 8, "bold"), pady=6
-            ).pack()
+                badge, text=name, bg=clr, fg="white", font=(FM, 8, "bold")
+            ).place(relx=0.5, rely=0.5, anchor="center")
             tk.Label(
                 row, text=desc, bg=C["card"], fg=C["text_s"], font=(FF, 8), anchor="w"
             ).pack(side="left")
@@ -364,9 +364,9 @@ class TextEditor(tk.Toplevel):
         tk.Frame(c, bg="#7c3aed", height=2).pack(fill="x")
         _txt(c, "ใช้เมื่อตั้งค่า Transpose Column ID")
         for var, desc in [
-            ("{{ ID }}   ", "→ ค่า ID ของแถวนั้น"),
-            ("{{ Key }}  ", "→ ชื่อคอลัมน์จาก Excel"),
-            ("{{ Value }}", "→ ข้อมูลในช่องนั้น"),
+            ("{{ID}}   ", "→ ค่า ID ของแถวนั้น"),
+            ("{{Key}}  ", "→ ชื่อคอลัมน์จาก Excel"),
+            ("{{Value}}", "→ ข้อมูลในช่องนั้น"),
         ]:
             row = tk.Frame(c, bg=C["card"])
             row.pack(fill="x", padx=10, pady=1)
