@@ -14,6 +14,8 @@
 | 📤 **ส่งออกได้ทุกรูปแบบ** | `.csv`, `.json`, `.txt`, `.sidata` และอื่นๆ |
 | 📝 **Template Engine** | กำหนด Header / Body / Footer เองได้อิสระ |
 | 🔄 **Transpose Mode** | แปลงตารางแนวนอน → คู่ Key-Value แนวตั้ง |
+| 🔙 **Un-Transpose (Reverse Melt)** | กู้คืนข้อมูลจาก Reverse Melt กลับเป็นตารางปกติ |
+| 🎛️ **Filter Rules** | กรองข้อมูลก่อนแปลงด้วยเงื่อนไข 9 แบบ (AND Logic) |
 | 📋 **Multi-Project** | จัดการหลาย Project พร้อมกัน รันทีเดียวได้หลายงาน |
 | 🔒 **License Protection** | 1 License = 1 เครื่อง ป้องกันการใช้งานโดยไม่ได้รับอนุญาต |
 
@@ -74,6 +76,29 @@
 | **Footer Template** | Template สำหรับส่วนท้าย (แสดงครั้งเดียว) |
 | **Output File Path** | Path ของไฟล์ผลลัพธ์ที่ต้องการสร้าง |
 | **Transpose Column ID** | ชื่อคอลัมน์ ID สำหรับโหมด Transpose (เว้นว่างถ้าไม่ใช้) |
+| **Filter Rules** | กฎกรองข้อมูล (เช่น `OS:eq:Windows;Status:eq:Active`) |
+
+### กฎกรองข้อมูล (Filter Rules)
+
+ใช้กรองข้อมูลเฉพาะแถวที่ต้องการก่อนนำไปแปลง Template:
+
+```
+Field:Operator:Value
+```
+
+| Operator | ความหมาย | ตัวอย่าง |
+|----------|---------|---------|
+| `eq` | เท่ากับ | `OS:eq:Windows` |
+| `neq` | ไม่เท่ากับ | `Status:neq:Inactive` |
+| `contains` | มีข้อความ | `Name:contains:Server` |
+| `not_contains` | ไม่มีข้อความ | `Name:not_contains:Test` |
+| `sw` | ขึ้นต้นด้วย | `ID:sw:SRV` |
+| `ew` | ลงท้ายด้วย | `Name:ew:DB` |
+| `gt` | มากกว่า | `CPU:gt:4` |
+| `lt` | น้อยกว่า | `RAM:lt:16` |
+| `in` | อยู่ในรายการ | `OS:in:Windows,Linux` |
+
+> 🔗 กฎหลายข้อใช้ **AND Logic** — ทุกเงื่อนไขต้องเป็นจริง
 
 ### 2. เขียน Template
 
@@ -102,6 +127,16 @@ D:\ASBC\projects\MyProject\templates\body.txt#L1-1
 | `{{ ID }}` | หมายเลขแถว |
 | `{{ Key }}` | ชื่อคอลัมน์จาก Excel |
 | `{{ Value }}` | ข้อมูลในช่องนั้น |
+
+#### Variable พิเศษ (Un-Transpose Mode)
+
+ใช้เมื่อต้องการแปลงข้อมูล Reverse Melt กลับเป็นตารางปกติ:
+
+| Variable | ความหมาย |
+|----------|---------|
+| `{{ Row_ID }}` | หมายเลขแถวเดิมก่อน Transpose |
+| `{{ Column_Name }}` | ชื่อคอลัมน์เดิมที่กู้คืนมา |
+| `{{ Row_Value }}` | ค่าข้อมูลในคอลัมน์นั้น |
 
 ### 3. รันโปรแกรม
 
@@ -149,6 +184,7 @@ body_file    = path/to/body.txt
 footer_file  =
 output_name  = path/to/output.csv
 melt_id_vars =
+filter_rules = OS:eq:Windows;Status:eq:Active
 encoding     = utf-8
 ```
 
@@ -216,6 +252,15 @@ ASBC_GUI.py
 
 **Q: ไฟล์ Excel เปิดค้างอยู่แล้วรัน Error?**
 > ปิดไฟล์ Excel ทั้งต้นทางและปลายทางก่อนกด RUN
+
+**Q: Filter Rules ไม่ทำงาน?**
+> ตรวจสอบชื่อ Field ให้ตรงกับ Header ใน Excel (ไม่สนใจตัวพิมพ์เล็ก-ใหญ่) และใช้ Operator ที่ถูกต้อง เช่น `eq`, `contains`, `sw`
+
+**Q: อยากได้ข้อมูลเฉพาะบางแถวมาแปลง?**
+> ใช้ Filter Rules ในหน้า Edit Project เช่น `Region:eq:BKK;Type:eq:Server` จะดึงเฉพาะแถวที่ Region=BKK **และ** Type=Server
+
+**Q: Un-Transpose ใช้อะไรได้บ้าง?**
+> ใช้เมื่อข้อมูลต้นทางถูก Reverse Melt มาแล้วต้องการกู้คืนกลับเป็นตารางปกติ กำหนด Transpose Column ID แล้วเลือกโหมด Un-Transpose
 
 ---
 
