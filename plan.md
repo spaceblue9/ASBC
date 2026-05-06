@@ -90,6 +90,19 @@
 
 
 
+- [x] **Phase 16: Filter Rules Support**
+    - [x] 16.1 เพิ่ม filter logic ใน ASBC_Main.py (parse filter_rules, apply filters)
+    - [x] 16.2 เพิ่ม Filter Rules UI ใน TaskEditor (เพิ่ม/ลบ/แก้ไข rules ง่าย)
+    - [x] 16.3 เพิ่มหน้า Filter Guide ใน Help Dialog
+    - [x] 16.4 เพิ่มคำแนะนำ Filter ใน TextEditor Quick Reference
+    - [x] 16.5 ทดสอบ Filter Rules กับหลายเงื่อนไข
+- [x] **Phase 15: Un-Transpose (Reverse Melt) Support**
+    - [x] 15.1 เพิ่มฟิลด์ `un_melt_columns` ใน TaskEditor GUI สำหรับระบุคอลัมน์ Key และ Value
+    - [x] 15.2 เพิ่ม logic un-melt/pivot ใน ASBC_Main.py เพื่อแปลงข้อมูล Key-Value กลับเป็นตารางแนวนอน
+    - [x] 15.3 เพิ่มคำแนะนำ Un-Transpose Mode ในหน้า Help/Transpose Guide
+    - [x] 15.4 ทดสอบการแปลงข้อมูล Transpose กลับมาเป็นตารางปกติ
+    - [x] 15.5 อัปเดต Help Dialog (Overview, FAQ) และ Quick Reference ใน TextEditor
+
 ---
 
 ## กฎเหล็กในการทำงาน (Strict Rules)

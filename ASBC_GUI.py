@@ -386,7 +386,20 @@ class TextEditor(tk.Toplevel):
 
         _div(c)
 
-        # ── Section 5: ข้อควรระวัง ─────────────────────────────────────────────
+        # ── Section 5: Un-Transpose Mode ────────────────────────────────────────
+        _badge(c, "↩️  Un-Transpose Mode (แปลงกลับ)", "#2563eb")
+        tk.Frame(c, bg="#2563eb", height=2).pack(fill="x")
+        _txt(c, "แปลงข้อมูล Key-Value กลับเป็นตารางปกติ")
+        _txt(c, "ระบุ 3 ชื่อคอลัมน์ใน 'Un-Transpose Columns'")
+        _code(c, "ID,Key,Value")
+        _txt(c, "Body Template ใช้ {{ชื่อคอลัมน์}} ปกติ")
+        _code(c, "{{ID}},{{Hostname}},{{OS}},{{IP}}")
+        _txt(c, "ผลลัพธ์จะเป็นตารางแนวนอน:")
+        _code(c, "1,SERVER-01,Windows,10.0.0.1\n2,SERVER-02,Linux,10.0.0.2")
+
+        _div(c)
+
+        # ── Section 6: ข้อควรระวัง ─────────────────────────────────────────────
         _badge(c, "⚠️  ข้อควรระวัง", "#b45309", "white")
         tk.Frame(c, bg="#b45309", height=2).pack(fill="x")
         for note in [
@@ -495,6 +508,8 @@ class TaskEditor(tk.Toplevel):
             "footer_file": tk.StringVar(value=_get("footer_file")),
             "output_name": tk.StringVar(value=_get("output_name")),
             "melt_id_vars": tk.StringVar(value=_get("melt_id_vars")),
+            "un_melt_columns": tk.StringVar(value=_get("un_melt_columns")),
+            "filter_rules": tk.StringVar(value=_get("filter_rules")),
         }
         self.vars["name"].trace_add("write", self._auto_suggest_paths)
         self.vars["file_path"].trace_add("write", self._refresh_sheet_list)
@@ -536,6 +551,12 @@ class TaskEditor(tk.Toplevel):
         r = self._hint(r, "เช่น  projects/MyProject/output/result.csv")
         r = self._entry(r, "Transpose Column ID", "melt_id_vars")
         r = self._hint(r, "ระบุ ID column สำหรับ Melt  •  เว้นว่างถ้าไม่ใช้")
+        r = self._entry(r, "Un-Transpose Columns", "un_melt_columns")
+        r = self._hint(r, "เช่น  ID,Key,Value  •  แปลง Key-Value กลับเป็นตาราง")
+        r = self._sep(r)
+        # ── Section 4 ──────────────────────────────────────────────
+        r = self._sec(r, "4", "Filter Rules")
+        r = self._filter_builder(r)
         r = self._sep(r)
 
         # Footer buttons
@@ -758,6 +779,257 @@ class TaskEditor(tk.Toplevel):
         )
         return r + 1
 
+    def _filter_builder(self, r):
+        """Filter Rules builder UI."""
+        tk.Label(
+            self._f,
+            text="Filter Rules",
+            bg=C["bg"],
+            fg=C["text"],
+            font=(FF, 9, "bold"),
+            anchor="w",
+        ).grid(row=r, column=0, sticky="nw", padx=(0, 12), pady=(0, 7))
+
+        card = tk.Frame(
+            self._f,
+            bg=C["card"],
+            highlightbackground=C["border"],
+            highlightthickness=1,
+        )
+        card.grid(row=r, column=1, columnspan=2, sticky="ew", pady=(0, 7))
+
+        tk.Label(
+            card,
+            text="💡  Select column and operator, type value, then click + Add",
+            bg=C["card"],
+            fg=C["text_m"],
+            font=(FF, 8),
+        ).pack(fill="x", padx=12, pady=(8, 4))
+
+        self._filter_frame = card
+
+        filter_input = tk.Frame(card, bg=C["card"])
+        filter_input.pack(fill="x", padx=12, pady=4)
+
+        self.filter_field_var = tk.StringVar()
+        self.filter_op_var = tk.StringVar(value="eq")
+        self.filter_value_var = tk.StringVar()
+
+        fields = self._get_available_fields()
+        self.filter_field_cb = ttk.Combobox(
+            filter_input,
+            textvariable=self.filter_field_var,
+            values=fields,
+            width=14,
+            font=(FF, 9),
+        )
+        self.filter_field_cb.pack(side="left", padx=(0, 8))
+        self.filter_field_cb.set("Column")
+
+        ops = [
+            ("eq", "equals"),
+            ("neq", "not equals"),
+            ("contains", "contains"),
+            ("not_contains", "not contains"),
+            ("sw", "starts with"),
+            ("ew", "ends with"),
+            ("gt", "greater than"),
+            ("lt", "less than"),
+            ("in", "in (comma-sep)"),
+        ]
+        op_frame = tk.Frame(filter_input, bg=C["card"])
+        op_frame.pack(side="left", padx=(0, 8))
+        tk.Label(
+            op_frame,
+            text="if",
+            bg=C["card"],
+            fg=C["text_m"],
+            font=(FF, 9),
+        ).pack(side="left", padx=(0, 4))
+        self.filter_op_cb = ttk.Combobox(
+            op_frame,
+            textvariable=self.filter_op_var,
+            values=[o[1] for o in ops],
+            width=12,
+            font=(FF, 9),
+        )
+        self.filter_op_cb.pack(side="left")
+        self.filter_op_cb.set("equals")
+
+        tk.Entry(
+            filter_input,
+            textvariable=self.filter_value_var,
+            bg=C["card_alt"],
+            fg=C["text"],
+            font=(FF, 9),
+            relief="flat",
+            highlightbackground=C["border"],
+            highlightthickness=1,
+            insertbackground=C["primary"],
+        ).pack(side="left", fill="x", expand=True, padx=(0, 6), ipady=4)
+
+        flat_btn(
+            filter_input,
+            "+ Add",
+            self._add_filter_rule,
+            C["success"],
+            C["suc_h"],
+            "white",
+            padx=10,
+            pady=5,
+        ).pack(side="left")
+
+        self._filter_rules = []
+        self._load_existing_filters()
+
+        self._filter_list_frame = tk.Frame(card, bg=C["card"])
+        self._filter_list_frame.pack(fill="x", padx=12, pady=(4, 8))
+        self._render_filter_list()
+
+        tk.Label(
+            card,
+            text="All rules are combined with AND logic",
+            bg=C["card"],
+            fg=C["text_m"],
+            font=(FF, 8),
+        ).pack(fill="x", padx=12, pady=(0, 6))
+
+        return r + 1
+
+    def _get_available_fields(self):
+        path = self.vars["file_path"].get()
+        if path and os.path.exists(path) and path.lower().endswith(
+            (".xlsx", ".xls", ".csv")
+        ):
+            try:
+                if path.lower().endswith(".csv"):
+                    df = pd.read_csv(path, nrows=1)
+                else:
+                    xl = pd.ExcelFile(path)
+                    df = pd.read_excel(xl, sheet_name=0, nrows=1)
+                return df.columns.tolist()
+            except Exception:
+                pass
+        return []
+
+    def _load_existing_filters(self):
+        if self.section:
+            val = self.config.get(
+                self.section, "filter_rules", fallback=""
+            ).strip()
+        else:
+            val = ""
+        if val:
+            for rule in val.split(";"):
+                rule = rule.strip()
+                if rule:
+                    parts = rule.split(":", 2)
+                    if len(parts) == 3:
+                        self._filter_rules.append(
+                            {"field": parts[0], "op": parts[1], "value": parts[2]}
+                        )
+
+    def _add_filter_rule(self):
+        field = self.filter_field_var.get().strip()
+        if not field or field == "Column":
+            messagebox.showwarning(
+                "Validation Error",
+                "Please select a column to filter.",
+                parent=self,
+            )
+            return
+
+        op_label = self.filter_op_var.get().strip()
+        op_map = {
+            "equals": "eq",
+            "not equals": "neq",
+            "contains": "contains",
+            "not contains": "not_contains",
+            "starts with": "sw",
+            "ends with": "ew",
+            "greater than": "gt",
+            "less than": "lt",
+            "in (comma-sep)": "in",
+        }
+        op = op_map.get(op_label, op_label)
+
+        value = self.filter_value_var.get().strip()
+        if not value:
+            messagebox.showwarning(
+                "Validation Error",
+                "Please enter a filter value.",
+                parent=self,
+            )
+            return
+
+        self._filter_rules.append({"field": field, "op": op, "value": value})
+        self._render_filter_list()
+        self.filter_value_var.set("")
+
+    def _remove_filter_rule(self, index):
+        self._filter_rules.pop(index)
+        self._render_filter_list()
+
+    def _render_filter_list(self):
+        for w in self._filter_list_frame.winfo_children():
+            w.destroy()
+
+        if not self._filter_rules:
+            tk.Label(
+                self._filter_list_frame,
+                text="  No filter rules configured",
+                bg=C["card"],
+                fg=C["text_m"],
+                font=(FF, 9, "italic"),
+            ).pack(fill="x", pady=4)
+            return
+
+        for i, rule in enumerate(self._filter_rules):
+            op_display = {
+                "eq": "==",
+                "neq": "!=",
+                "contains": "contains",
+                "not_contains": "not contains",
+                "sw": "starts with",
+                "ew": "ends with",
+                "gt": ">",
+                "lt": "<",
+                "in": "in",
+            }.get(rule["op"], rule["op"])
+
+            row = tk.Frame(self._filter_list_frame, bg=C["card_alt"])
+            row.pack(fill="x", pady=1)
+
+            num_badge = tk.Frame(row, bg=C["primary"], width=22, height=22)
+            num_badge.pack_propagate(False)
+            num_badge.pack(side="left", padx=(4, 6))
+            tk.Label(
+                num_badge,
+                text=str(i + 1),
+                bg=C["primary"],
+                fg="white",
+                font=(FF, 7, "bold"),
+            ).place(relx=0.5, rely=0.5, anchor="center")
+
+            tk.Label(
+                row,
+                text=f"{rule['field']}  {op_display}  \"{rule['value']}\"",
+                bg=C["card_alt"],
+                fg=C["text"],
+                font=(FF, 9),
+            ).pack(side="left")
+
+            flat_btn(
+                row,
+                "×",
+                lambda idx=i: self._remove_filter_rule(idx),
+                C["card_alt"],
+                C["dan_lt"],
+                C["danger"],
+                padx=6,
+                pady=2,
+            ).pack(side="right", padx=4)
+
     # ── Logic ─────────────────────────────────────────────────────────────────
     def _refresh_sheet_list(self, *_):
         if not hasattr(self, "sheet_combo"):
@@ -771,6 +1043,10 @@ class TaskEditor(tk.Toplevel):
                 self.sheet_combo["values"] = []
         else:
             self.sheet_combo["values"] = []
+
+        if hasattr(self, "filter_field_cb"):
+            fields = self._get_available_fields()
+            self.filter_field_cb["values"] = fields
 
     def _auto_suggest_paths(self, *_):
         name = self.vars["name"].get().strip()
@@ -812,6 +1088,11 @@ class TaskEditor(tk.Toplevel):
                 "Validation Error", "Project name cannot be empty.", parent=self
             )
             return
+
+        filter_rules_str = ";".join(
+            f"{r['field']}:{r['op']}:{r['value']}" for r in self._filter_rules
+        )
+
         p_root = f"projects/{name}"
         for sub in ("input", "templates", "output"):
             os.makedirs(f"{p_root}/{sub}", exist_ok=True)
@@ -823,6 +1104,7 @@ class TaskEditor(tk.Toplevel):
         for k, v in self.vars.items():
             if k != "name":
                 self.config.set(new_sec, k, v.get())
+        self.config.set(new_sec, "filter_rules", filter_rules_str)
         self.main_app.save_config_to_file()
         self.main_app.refresh_task_list()
         self.main_app.set_status(f"✅  Project '{name}' saved.", "#10b981")
@@ -840,6 +1122,7 @@ class HelpDialog(tk.Toplevel):
         ("🚀  Quick Start", "quickstart"),
         ("📝  Template Guide", "template"),
         ("🔄  Transpose Mode", "transpose"),
+        ("🔍  Filter Rules", "filter"),
         ("❓  FAQ", "faq"),
         ("👤  About & Contact", "about"),
     ]
@@ -1095,6 +1378,8 @@ class HelpDialog(tk.Toplevel):
             ("📤", "Output", ".csv, .txt, .json, .sidata และอื่นๆ"),
             ("📝", "Template", "Header / Body / Footer กำหนดเองได้อิสระ"),
             ("🔄", "Transpose", "แปลงตาราง → คู่ Key-Value แนวตั้ง"),
+            ("↩️", "Un-Transpose", "แปลง Key-Value → กลับมาเป็นตารางปกติ"),
+            ("🔍", "Filter Rules", "กรองข้อมูลตามเงื่อนไขก่อนแปลง"),
             ("📋", "Multi-Project", "จัดการหลาย Project รันพร้อมกันได้"),
             ("🔒", "License", "1 License = 1 เครื่อง ป้องกันการใช้งานโดยไม่อนุญาต"),
         ]:
@@ -1287,6 +1572,156 @@ class HelpDialog(tk.Toplevel):
             ).pack(side="left")
             tk.Frame(card, bg=C["border"], height=1).pack(fill="x", padx=14)
 
+        self._sec(p, "🔄 Un-Transpose Mode (แปลงกลับ)")
+        self._para(
+            p,
+            "โหมดนี้จะแปลงข้อมูล Key-Value แนวตั้ง กลับมาเป็นตารางแนวนอนเหมือนเดิม\n"
+            "เหมาะสำหรับ: ไฟล์ Output ที่ผ่านการ Transpose แล้ว ต้องการนำไปใช้ต่อในระบบที่รับตาราง",
+        )
+        self._para(
+            p,
+            "วิธีใช้งาน: ในหน้า Edit Project ใส่ชื่อคอลัมน์ 3 ชื่อ คั่นด้วย comma ในช่อง 'Un-Transpose Columns'",
+        )
+        self._card(
+            p,
+            "📊 ข้อมูล Input (หลัง Transpose)",
+            "ID,Key,Value\n"
+            "1,Hostname,SERVER-01\n"
+            "1,OS,Windows\n"
+            "1,IP,10.0.0.1\n"
+            "2,Hostname,SERVER-02\n"
+            "2,OS,Linux\n"
+            "2,IP,10.0.0.2",
+            "#374151",
+        )
+        self._card(
+            p, "⚙️ Un-Transpose Columns", "ID,Key,Value", C["primary"]
+        )
+        self._card(
+            p,
+            "📄 ผลลัพธ์ (ตารางปกติ)",
+            "ID,Hostname,OS,IP\n"
+            "1,SERVER-01,Windows,10.0.0.1\n"
+            "2,SERVER-02,Linux,10.0.0.2",
+            "#059669",
+        )
+
+    def _pg_filter(self, p):
+        self._sec(p, "Filter Rules คืออะไร?")
+        self._para(
+            p,
+            "Filter Rules ช่วยกรองข้อมูลจากไฟล์ต้นทาง ก่อนที่จะนำไปประมวลผลผ่าน Template\n"
+            "เหมาะสำหรับ: การดึงเฉพาะแถวที่ตรงกับเงื่อนไข เช่น เฉพาะ OS = Windows, เฉพาะ Status = Active",
+        )
+
+        self._sec(p, "วิธีใช้งาน")
+        self._para(
+            p,
+            "ในหน้า Edit Project → Section 4: Filter Rules\n"
+            "1. เลือก Column ที่ต้องการกรองจากรายการ\n"
+            "2. เลือก Operator (เช่น equals, contains, greater than)\n"
+            "3. พิมพ์ค่าที่ต้องการ\n"
+            "4. กด + Add เพื่อเพิ่ม rule\n"
+            "5. สามารถเพิ่มหลาย rule ได้ (ทั้งหมดจะทำงานแบบ AND logic)",
+        )
+
+        self._sec(p, "Operators ที่รองรับ")
+        card = tk.Frame(
+            p, bg=C["card"], highlightbackground=C["border"], highlightthickness=1
+        )
+        card.pack(fill="x", padx=22, pady=(0, 10))
+        for op, desc, example in [
+            ("equals (eq)", "เท่ากับ (ไม่สนตัวพิมพ์)", "OS equals Windows"),
+            ("not equals (neq)", "ไม่เท่ากับ", "Status neq Inactive"),
+            ("contains", "มีคำนี้", "Name contains Smith"),
+            ("not contains", "ไม่มีคำนี้", "Name not contains Test"),
+            ("starts with (sw)", "ขึ้นต้นด้วย", "ID sw SRV"),
+            ("ends with (ew)", "ลงท้ายด้วย", "File ew .csv"),
+            ("greater than (gt)", "มากกว่า", "Age gt 18"),
+            ("less than (lt)", "น้อยกว่า", "Price lt 100"),
+            ("in", "อยู่ในกลุ่ม (คั่นด้วย comma)", "OS in Windows,Linux,Mac"),
+        ]:
+            row = tk.Frame(card, bg=C["card"])
+            row.pack(fill="x", padx=14, pady=5)
+            tk.Label(
+                row,
+                text=op,
+                bg=C["card"],
+                fg=C["primary"],
+                font=(FF, 9, "bold"),
+                width=22,
+                anchor="w",
+            ).pack(side="left")
+            tk.Label(
+                row, text=desc, bg=C["card"], fg=C["text_s"], font=(FF, 9), width=20
+            ).pack(side="left")
+            tk.Label(
+                row,
+                text=example,
+                bg=C["card"],
+                fg=C["text"],
+                font=(FM, 8),
+                anchor="w",
+            ).pack(side="left")
+            tk.Frame(card, bg=C["border"], height=1).pack(fill="x", padx=14)
+
+        self._sec(p, "ตัวอย่าง")
+        self._card(
+            p,
+            "📊 ข้อมูลต้นทาง (Excel)",
+            "Name      OS        Status\n"
+            "Server-01  Windows   Active\n"
+            "Server-02  Linux     Active\n"
+            "Server-03  Windows   Inactive\n"
+            "Server-04  Mac       Active",
+            "#374151",
+        )
+        self._card(
+            p,
+            "🔍 Filter Rules",
+            "OS equals Windows  AND  Status equals Active",
+            C["primary"],
+        )
+        self._card(
+            p,
+            "📄 ผลลัพธ์ (1 แถวที่ตรงเงื่อนไข)",
+            "Name      OS        Status\n"
+            "Server-01  Windows   Active",
+            "#059669",
+        )
+
+        self._sec(p, "ข้อควรระวัง")
+        card = tk.Frame(
+            p, bg=C["card"], highlightbackground=C["border"], highlightthickness=1
+        )
+        card.pack(fill="x", padx=22, pady=(0, 20))
+        for note in [
+            ("เลือก Column", "ต้องเลือก Column ที่มีอยู่ในไฟล์ต้นทาง"),
+            ("AND Logic", "ทุก rule ต้องตรงพร้อมกัน (ไม่ใช่ OR)"),
+            ("ตัวพิมพ์", "Filter ไม่สนตัวพิมพ์เล็ก-ใหญ่ (case-insensitive)"),
+            ("Operator 'in'", "ค่าต้องคั่นด้วย comma: Windows,Linux,Mac"),
+        ]:
+            row = tk.Frame(card, bg=C["card"])
+            row.pack(fill="x", padx=14, pady=5)
+            tk.Label(
+                row,
+                text=note[0],
+                bg=C["card"],
+                fg=C["primary"],
+                font=(FF, 9, "bold"),
+                width=14,
+                anchor="w",
+            ).pack(side="left")
+            tk.Label(
+                row,
+                text=note[1],
+                bg=C["card"],
+                fg=C["text_s"],
+                font=(FF, 9),
+                anchor="w",
+            ).pack(side="left")
+            tk.Frame(card, bg=C["border"], height=1).pack(fill="x", padx=14)
+
     def _pg_faq(self, p):
         self._sec(p, "คำถามที่พบบ่อย")
         faqs = [
@@ -1311,6 +1746,34 @@ class HelpDialog(tk.Toplevel):
                 "ไฟล์ถูกย้ายหรือลบ — กด Edit แล้ว Browse เลือกไฟล์ใหม่",
             ),
             ("รันแล้ว Output ว่างเปล่า?", "ตรวจสอบ Body Template ว่าเขียน {{ }} ถูกต้องหรือไม่"),
+            (
+                "Un-Transpose คืออะไร?",
+                "โหมดแปลงข้อมูล Key-Value แนวตั้ง กลับมาเป็นตารางแนวนอน (ตรงข้ามกับ Transpose)",
+            ),
+            (
+                "วิธีใช้ Un-Transpose?",
+                "ใส่ชื่อคอลัมน์ 3 ชื่อ คั่นด้วย comma ในช่อง 'Un-Transpose Columns' เช่น ID,Key,Value",
+            ),
+            (
+                "Un-Transpose แล้ว Error?",
+                "ตรวจสอบว่าชื่อคอลัมน์ทั้ง 3 (ID, Key, Value) มีอยู่ในไฟล์ Input จริง",
+            ),
+            (
+                "Filter Rules คืออะไร?",
+                "ระบบกรองข้อมูลตามเงื่อนไข เช่น เฉพาะ OS = Windows, เฉพาะ Status = Active",
+            ),
+            (
+                "เพิ่ม Filter Rule อย่างไร?",
+                "เลือก Column → เลือก Operator → พิมพ์ค่า → กด + Add",
+            ),
+            (
+                "ใช้หลาย Filter พร้อมกันได้ไหม?",
+                "ได้ — ทุก rule จะทำงานแบบ AND (ต้องตรงทุกเงื่อนไข)",
+            ),
+            (
+                "Filter แล้วไม่มีข้อมูล?",
+                "ตรวจสอบว่าค่าที่กรองตรงกับข้อมูลในไฟล์จริง และเลือก Column ถูกต้อง",
+            ),
         ]
         for i, (q, a) in enumerate(faqs, 1):
             card = tk.Frame(
@@ -1797,8 +2260,16 @@ class ASBCGui:
             if not sec.startswith("Task:"):
                 continue
             has_melt = bool(self.config.get(sec, "melt_id_vars", fallback="").strip())
-            mode = "🔄  Transpose" if has_melt else "📋  Normal"
-            tag = "transpose" if has_melt else "normal"
+            has_un_melt = bool(self.config.get(sec, "un_melt_columns", fallback="").strip())
+            if has_un_melt:
+                mode = "↩️  Un-Transpose"
+                tag = "transpose"
+            elif has_melt:
+                mode = "🔄  Transpose"
+                tag = "transpose"
+            else:
+                mode = "📋  Normal"
+                tag = "normal"
             out = self.config.get(sec, "output_name", fallback="-")
             self.tree.insert(
                 "",

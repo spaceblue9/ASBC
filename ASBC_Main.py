@@ -27,6 +27,70 @@ class ASBCConverter:
             return str(val)
         return str(val)
 
+    def apply_filters(self, df, filter_rules_str):
+        if not filter_rules_str or not filter_rules_str.strip():
+            return df
+
+        rules = [r.strip() for r in filter_rules_str.split(";") if r.strip()]
+        if not rules:
+            return df
+
+        mask = pd.Series([True] * len(df), index=df.index)
+
+        for rule in rules:
+            parts = rule.split(":", 2)
+            if len(parts) != 3:
+                print(f"Warning: Invalid filter rule -> {rule}")
+                continue
+
+            field, op, value = parts[0].strip(), parts[1].strip().lower(), parts[2].strip()
+
+            if field not in df.columns:
+                print(f"Warning: Filter field '{field}' not found in data")
+                continue
+
+            col = df[field].astype(str).str.strip()
+
+            if op in ("equals", "eq"):
+                rule_mask = col.str.lower() == value.lower()
+            elif op in ("not_equals", "neq"):
+                rule_mask = col.str.lower() != value.lower()
+            elif op == "contains":
+                rule_mask = col.str.contains(value, case=False, na=False)
+            elif op == "not_contains":
+                rule_mask = ~col.str.contains(value, case=False, na=False)
+            elif op in ("starts_with", "sw"):
+                rule_mask = col.str.lower().str.startswith(value.lower())
+            elif op in ("ends_with", "ew"):
+                rule_mask = col.str.lower().str.endswith(value.lower())
+            elif op in ("greater", "gt"):
+                try:
+                    rule_mask = pd.to_numeric(col, errors="coerce") > float(value)
+                except:
+                    rule_mask = col > value
+            elif op in ("less", "lt"):
+                try:
+                    rule_mask = pd.to_numeric(col, errors="coerce") < float(value)
+                except:
+                    rule_mask = col < value
+            elif op == "in":
+                values = [v.strip().lower() for v in value.split(",")]
+                rule_mask = col.str.lower().isin(values)
+            else:
+                print(f"Warning: Unknown filter operator -> {op}")
+                continue
+
+            mask = mask & rule_mask
+
+        filtered_count = mask.sum()
+        total_count = len(df)
+        if filtered_count < total_count:
+            print(f"  Filter: {total_count} rows -> {filtered_count} rows ({total_count - filtered_count} filtered out)")
+        else:
+            print(f"  Filter: {total_count} rows (no change)")
+
+        return df[mask].reset_index(drop=True)
+
     def load_input_data(self, task_config):
         file_path = task_config.get("file_path")
         if not file_path or not os.path.exists(file_path):
@@ -103,6 +167,13 @@ class ASBCConverter:
         if df is None:
             return
 
+        filter_rules = task_config.get("filter_rules", "")
+        df = self.apply_filters(df, filter_rules)
+
+        if df.empty:
+            print(f"  No data after filtering. Skipping task.")
+            return
+
         melt_id_vars = task_config.get("melt_id_vars", "")
         if melt_id_vars:
             id_cols = [c.strip() for c in melt_id_vars.split(",")]
@@ -124,6 +195,19 @@ class ASBCConverter:
                     df = df.sort_values(by=["sort_id", "ID"]).drop(columns=["sort_id"])
                 except:
                     df = df.sort_values(by=["ID"])
+
+        un_melt_cols = task_config.get("un_melt_columns", "")
+        if un_melt_cols:
+            cols = [c.strip() for c in un_melt_cols.split(",")]
+            if len(cols) == 3:
+                id_col, key_col, value_col = cols
+                if id_col in df.columns and key_col in df.columns and value_col in df.columns:
+                    df = df.pivot(index=id_col, columns=key_col, values=value_col)
+                    df = df.reset_index()
+                    df.columns.name = None
+                    df = df.astype(object).map(self.format_value)
+                else:
+                    print(f"Warning: Un-Transpose columns not found -> {un_melt_cols}")
 
         header_tmpl = self.read_template_file(task_config.get("header_file"))
         body_tmpl = self.read_template_file(task_config.get("body_file"))
