@@ -343,8 +343,9 @@ class TextEditor(tk.Toplevel):
         # ── Section 2: วิธีดึงข้อมูล ────────────────────────────────────────
         _badge(c, "🌟  ดึงข้อมูลจาก Excel", "#059669")
         tk.Frame(c, bg="#059669", height=2).pack(fill="x")
-        _txt(c, "ใช้ {{ ชื่อคอลัมน์ }} ใน Body Template")
+        _txt(c, "ใช้ {{ชื่อคอลัมน์}} ใน Body Template")
         _txt(c, "ชื่อต้องตรงกับ Header ใน Excel")
+        _txt(c, "⚠️ ห้ามมี space ก่อน }} เช่น {{ CI Name }} จะ Error", "#ef4444")
         _code(c, "{{CI Name}}\n{{OS Version}}\n{{IP Address}}")
 
         _div(c)
@@ -1479,6 +1480,18 @@ class HelpDialog(tk.Toplevel):
 
         self._sec(p, "วิธีดึงข้อมูลจาก Excel")
         self._para(p, "ใช้ {{ชื่อคอลัมน์}} ใน Body Template ตามชื่อ Header ใน Excel:")
+        tk.Label(
+            p,
+            text="⚠️ ห้ามเว้นวรรคก่อน }} เช่น {{ CI Name }} จะ Error",
+            bg=C["bg"],
+            fg="#ef4444",
+            font=(FF, 10),
+            justify="left",
+            anchor="w",
+            padx=22,
+            pady=2,
+            wraplength=640,
+        ).pack(fill="x")
         self._card(
             p,
             "ตัวอย่าง: Excel มีคอลัมน์  CI Name, OS, IP Address",

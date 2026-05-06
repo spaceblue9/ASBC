@@ -106,13 +106,13 @@ Field:Operator:Value
 
 #### วิธีดึงข้อมูลจาก Excel
 
-ใช้ `{{ ชื่อคอลัมน์ }}` ตามชื่อ Header ใน Excel:
+ใช้ `{{ชื่อคอลัมน์}}` ตามชื่อ Header ใน Excel (**ห้ามมี space ก่อน `}}`**):
 
 ```
 D:\ASBC\projects\MyProject\templates\body.txt#L1-3
-CI_NAME={{ CI Name }}
-OS={{ OS Version }}
-IP_ADDRESS={{ IP Address }}
+CI_NAME={{CI Name}}
+OS={{OS Version}}
+IP_ADDRESS={{IP Address}}
 ```
 
 #### Variable พิเศษ (Transpose Mode)
@@ -248,7 +248,8 @@ ASBC_GUI.py
 > แจ้ง Machine ID ของเครื่องใหม่ให้ผู้พัฒนา เพื่อออก License Key ใหม่
 
 **Q: ตัวพิมพ์เล็ก-ใหญ่ใน `{{ }}` สำคัญไหม?**
-> ไม่สำคัญ — `{{ CI Name }}`, `{{ ci name }}`, `{{ CI NAME }}` ทำงานเหมือนกัน
+> ไม่สำคัญ — `{{CI Name}}`, `{{ci name}}`, `{{CI NAME}}` ทำงานเหมือนกัน
+> ⚠️ **สำคัญ:** ห้ามเว้นวรรคก่อน `}}` เช่น `{{ CI Name }}` (มี space ตัวท้าย) จะ Error
 
 **Q: ไฟล์ Excel เปิดค้างอยู่แล้วรัน Error?**
 > ปิดไฟล์ Excel ทั้งต้นทางและปลายทางก่อนกด RUN

@@ -1,6 +1,7 @@
 import configparser
 import csv
 import os
+import re
 import sys
 import warnings
 
@@ -224,9 +225,10 @@ class ASBCConverter:
                     processed_val = '"' + val.replace('"', '""') + '"'
                 else:
                     processed_val = val
-                line = line.replace("{{" + str(col) + "}}", processed_val)
-                line = line.replace("{{" + str(col).lower() + "}}", processed_val)
-                line = line.replace("{{" + str(col).upper() + "}}", processed_val)
+                col_norm = str(col).strip()
+                # Support {{CI Name}}, {{ CI Name }}, {{ci name}}, {{CI NAME}}
+                pattern = r"\{\{\s*" + re.escape(col_norm) + r"\s*\}\}"
+                line = re.sub(pattern, processed_val, line, flags=re.IGNORECASE)
             result_rows.append(line)
 
         final_output = (
