@@ -84,6 +84,12 @@
     - [x] 14.4 สร้าง keygen.py เครื่องมือออก License Key สำหรับผู้พัฒนา (ไม่แจกลูกค้า)
     - [x] 14.5 เพิ่ม License Gate ใน ASBC_GUI.py ตรวจสอบทุกครั้งที่เปิดโปรแกรม
     - [x] 14.6 สร้าง build.bat สำหรับ compile เป็น .exe ด้วย PyInstaller
+- [ ] **Phase 15: Improved Error Messages & Debugging**
+    - [ ] 15.1 แก้ไขปัญหา 'bad escape' error ในการประมวลผล Template (ใช้ lambda ใน re.sub)
+    - [ ] 15.2 เพิ่มการตรวจสอบรูปแบบ {{ }} ใน Template ก่อนประมวลผล
+    - [ ] 15.3 ปรับปรุง Error Message ให้ระบุไฟล์ที่เกิดปัญหาและวิธีแก้ไข
+    - [ ] 15.4 เพิ่มคำแนะนำการแก้ไขปัญหาในหน้า FAQ (Help Dialog)
+    - [ ] 15.5 แสดงชื่อ Task ที่เกิด Error ในข้อความแจ้งเตือน
 
 
 

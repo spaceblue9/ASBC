@@ -2374,8 +2374,39 @@ class ASBCGui:
         except Exception as ex:
             self._run_lbl.configure(text="🚀  RUN SELECTED PROJECTS", bg=C["success"])
             self._run_btn.configure(bg=C["success"])
-            self.set_status(f"❌  Error: {str(ex)[:70]}", C["danger"])
-            messagebox.showerror("Process Error", str(ex), parent=self.root)
+            
+            # Build user-friendly error message
+            err_msg = str(ex)
+            suggestion = ""
+            
+            # Check for common errors and provide suggestions
+            if "bad escape" in err_msg.lower():
+                suggestion = "\n\n💡 Possible causes:\n" \
+                           "• Data contains backslash (\\) which conflicts with regex\n" \
+                           "• Fix: Check your Excel data for backslashes\n" \
+                           "• Or simplify the data (replace \\ with / or other characters)"
+            elif "template error" in err_msg.lower():
+                suggestion = "\n\n💡 How to fix:\n" \
+                           "• Open the template file mentioned in the error\n" \
+                           "• Remove spaces before }} in {{ }}\n" \
+                           "• Example: change '{{ CI Name }}' to '{{CI Name}}'"
+            elif "not found" in err_msg.lower() and "header" in err_msg.lower():
+                suggestion = "\n\n💡 How to fix:\n" \
+                           "• Check if the Excel file has the correct column headers\n" \
+                           "• Make sure {{ column name }} in template matches exactly"
+            elif "no such file" in err_msg.lower() or "cannot find" in err_msg.lower():
+                suggestion = "\n\n💡 How to fix:\n" \
+                           "• The input file may have been moved or deleted\n" \
+                           "• Click 'Edit' and browse to select the correct file again"
+            
+            self.set_status(f"❌  Error: {err_msg[:70]}", C["danger"])
+            messagebox.showerror(
+                "Process Error", 
+                f"{err_msg}{suggestion}\n\n" 
+                f"Task: {sel[0][5:] if sel else 'Unknown'}\n"
+                f"If problem persists, check Help → FAQ for common solutions.",
+                parent=self.root,
+            )
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -133,9 +133,21 @@ class ASBCConverter:
         if path and os.path.exists(path):
             try:
                 with open(path, "r", encoding="utf-8") as f:
-                    return f.read().strip()
-            except:
-                return ""
+                    content = f.read()
+                    # Check for common template errors
+                    import re
+                    # Find all {{ }} placeholders
+                    placeholders = re.findall(r'\{\{[^}]*\}\}', content)
+                    for ph in placeholders:
+                        # Check for spaces before closing }}
+                        if '  }}' in ph or ph.endswith(' }}'):
+                            raise ValueError(
+                                f"Template error in {path}: Found spaces before '}}' in placeholder '{ph}'. "
+                                f"Fix: Remove spaces inside {{ }} (e.g., change '{{ CI Name }}' to '{{CI Name}}')"
+                            )
+                    return content.strip()
+            except Exception as e:
+                raise Exception(f"Error reading template file '{path}': {str(e)}")
         return ""
 
     def save_output(self, content, processed_df, task_config):
@@ -164,38 +176,39 @@ class ASBCConverter:
 
     def process_task(self, task_name, task_config):
         print(f"\n>>> Processing Task: {task_name}")
-        df = self.load_input_data(task_config)
-        if df is None:
-            return
+        try:
+            df = self.load_input_data(task_config)
+            if df is None:
+                return
 
-        filter_rules = task_config.get("filter_rules", "")
-        df = self.apply_filters(df, filter_rules)
+            filter_rules = task_config.get("filter_rules", "")
+            df = self.apply_filters(df, filter_rules)
 
-        if df.empty:
-            print(f"  No data after filtering. Skipping task.")
-            return
+            if df.empty:
+                print(f"  No data after filtering. Skipping task.")
+                return
 
-        melt_id_vars = task_config.get("melt_id_vars", "")
-        if melt_id_vars:
-            id_cols = [c.strip() for c in melt_id_vars.split(",")]
-            existing_id_cols = [c for c in id_cols if c in df.columns]
-            if existing_id_cols:
-                value_vars = [
-                    col for col in self.original_columns if col not in existing_id_cols
-                ]
-                df = df.melt(
-                    id_vars=existing_id_cols,
-                    value_vars=value_vars,
-                    var_name="Key",
-                    value_name="Value",
-                )
-                if len(existing_id_cols) == 1:
-                    df = df.rename(columns={existing_id_cols[0]: "ID"})
-                try:
-                    df["sort_id"] = pd.to_numeric(df["ID"])
-                    df = df.sort_values(by=["sort_id", "ID"]).drop(columns=["sort_id"])
-                except:
-                    df = df.sort_values(by=["ID"])
+            melt_id_vars = task_config.get("melt_id_vars", "")
+            if melt_id_vars:
+                id_cols = [c.strip() for c in melt_id_vars.split(",")]
+                existing_id_cols = [c for c in id_cols if c in df.columns]
+                if existing_id_cols:
+                    value_vars = [
+                        col for col in self.original_columns if col not in existing_id_cols
+                    ]
+                    df = df.melt(
+                        id_vars=existing_id_cols,
+                        value_vars=value_vars,
+                        var_name="Key",
+                        value_name="Value",
+                    )
+                    if len(existing_id_cols) == 1:
+                        df = df.rename(columns={existing_id_cols[0]: "ID"})
+                    try:
+                        df["sort_id"] = pd.to_numeric(df["ID"])
+                        df = df.sort_values(by=["sort_id", "ID"]).drop(columns=["sort_id"])
+                    except:
+                        df = df.sort_values(by=["ID"])
 
         un_melt_cols = task_config.get("un_melt_columns", "")
         if un_melt_cols:
@@ -203,6 +216,22 @@ class ASBCConverter:
             if len(cols) == 3:
                 id_col, key_col, value_col = cols
                 if id_col in df.columns and key_col in df.columns and value_col in df.columns:
+                    # Check for duplicates before pivot
+                    dups = df.duplicated(subset=[id_col, key_col])
+                    if dups.any():
+                        dup_rows = df[dups][[id_col, key_col, value_col]].head(5)
+                        dup_str = dup_rows.to_string(index=False)
+                        raise ValueError(
+                            f"Un-Transpose failed: Found duplicate entries for same ID+Key combination!\n\n"
+                            f"File: {task_config.get('file_path', 'Unknown')}\n"
+                            f"ID Column: {id_col}\n"
+                            f"Key Column: {key_col}\n\n"
+                            f"First few duplicates:\n{dup_str}\n\n"
+                            f"How to fix:\n"
+                            f"1. Open the input file in Excel\n"
+                            f"2. Remove duplicate rows where {id_col}+{key_col} are the same\n"
+                            f"3. Or use Filter Rules to exclude duplicate data"
+                        )
                     df = df.pivot(index=id_col, columns=key_col, values=value_col)
                     df = df.reset_index()
                     df.columns.name = None
@@ -210,35 +239,44 @@ class ASBCConverter:
                 else:
                     print(f"Warning: Un-Transpose columns not found -> {un_melt_cols}")
 
-        header_tmpl = self.read_template_file(task_config.get("header_file"))
-        body_tmpl = self.read_template_file(task_config.get("body_file"))
-        footer_tmpl = self.read_template_file(task_config.get("footer_file"))
+            header_tmpl = self.read_template_file(task_config.get("header_file"))
+            body_tmpl = self.read_template_file(task_config.get("body_file"))
+            footer_tmpl = self.read_template_file(task_config.get("footer_file"))
 
-        result_rows = []
-        for _, row in df.iterrows():
-            line = body_tmpl
-            for col in df.columns:
-                val = str(row[col])
-                if col in ["Key", "Value"] and (
-                    "," in val or "\n" in val or '"' in val
-                ):
-                    processed_val = '"' + val.replace('"', '""') + '"'
-                else:
-                    processed_val = val
-                col_norm = str(col).strip()
-                # Support {{CI Name}}, {{ CI Name }}, {{ci name}}, {{CI NAME}}
-                pattern = r"\{\{\s*" + re.escape(col_norm) + r"\s*\}\}"
-                line = re.sub(pattern, processed_val, line, flags=re.IGNORECASE)
-            result_rows.append(line)
+            if not body_tmpl:
+                raise ValueError(
+                    f"Body template is empty! Please check file: {task_config.get('body_file')}"
+                )
 
-        final_output = (
-            header_tmpl
-            + ("\n" if header_tmpl else "")
-            + "\n".join(result_rows)
-            + ("\n" if footer_tmpl else "")
-            + footer_tmpl
-        )
-        self.save_output(final_output, df, task_config)
+            result_rows = []
+            for _, row in df.iterrows():
+                line = body_tmpl
+                for col in df.columns:
+                    val = str(row[col])
+                    if col in ["Key", "Value"] and (
+                        "," in val or "\n" in val or '"' in val
+                    ):
+                        processed_val = '"' + val.replace('"', '""') + '"'
+                    else:
+                        processed_val = val
+                    col_norm = str(col).strip()
+                    # Support {{CI Name}}, {{ CI Name }}, {{ci name}}, {{CI NAME}}
+                    pattern = r"\{\{\s*" + re.escape(col_norm) + r"\s*\}\}"
+                    # Use lambda to avoid 'bad escape' errors in replacement string
+                    line = re.sub(pattern, lambda m, v=processed_val: v, line, flags=re.IGNORECASE)
+                result_rows.append(line)
+
+            final_output = (
+                header_tmpl
+                + ("\n" if header_tmpl else "")
+                + "\n".join(result_rows)
+                + ("\n" if footer_tmpl else "")
+                + footer_tmpl
+            )
+            self.save_output(final_output, df, task_config)
+        except Exception as e:
+            # Add task name to error for easier debugging
+            raise Exception(f"Task '{task_name}' failed: {str(e)}")
 
     def run_all_tasks(self):
         for section in self.config.sections():

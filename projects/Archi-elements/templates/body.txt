@@ -1,5 +1,0 @@
-"{{RunningNo}}","ApplicationComponent","{{CI Name}}","",""
-
-
-
-
